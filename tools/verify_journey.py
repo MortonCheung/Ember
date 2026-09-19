@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-"""《辽迹》Journey 自动验收（仅 Python 标准库 + 本机 Chrome CDP）。
+"""《辽迹》Final Cinematic Whitebox 自动验收（仅 Python 标准库 + 本机 Chrome CDP）。
 
 用法：
-    # 先在 app/ 运行 npm run build && npm run preview -- --host 127.0.0.1
-    python3 tools/verify_journey.py http://127.0.0.1:4173
-    python3 tools/verify_journey.py http://127.0.0.1:4173 --screenshots
+    # 先在 app/ 起服务：npm run dev（5173）或 npm run build && npm run preview（4173）
+    python3 tools/verify_journey.py http://127.0.0.1:5173
+    python3 tools/verify_journey.py http://127.0.0.1:5173 --screenshots
 
-覆盖：
-  1. 基础结构 —— 单 Canvas、无横向滚动、控制台零错误
-  2. Journey —— 八个进度点的相机连续性、章节推导、渲染预算
-  3. 三个 Hero —— 进入 / 退出 Explore 闭环、原位返回精度
-  4. 取景 —— 三个视口下 Hero 包围盒必须完整入镜（把构图变成读数）
-  5. 旧路由 —— #/ #/hall #/cast #/entrance #/history 冒烟，确认无回归
+覆盖面（相对旧白盒新增 2~8）：
+  1. 结构      —— 单 Canvas、无横向滚动、控制台零错误
+  2. 分镜      —— 全片 49 个镜头可被定位；每个镜头三个时刻的 Camera 无 NaN
+  3. 镜头衔接  —— 非硬切镜头之间必须首尾相接（shotContinuity）
+  4. 反向滚动  —— 从 1.0 递减回 0，Camera 读数始终有限
+  5. Explore   —— C620-1 进入 / 退出闭环，原位返回精度
+  6. 取景      —— C620-1 在 Notice 镜头必须完整入镜
+  7. 抚顺构图  —— 极低机位 + 仰角 + 工人占屏比（本轮必须人工验收的镜头）
+  8. 性能      —— 各章节 draw call / 三角面读数
+  9. 旧路由    —— #/ #/hall #/cast #/entrance #/history 冒烟，确认无回归
 
 注意：本机沙箱内 Chrome 自带 sandbox 无法初始化（Operation not permitted），
 GPU 进程会随之退出导致 CDP socket 立刻断开，因此必须带 --no-sandbox。
@@ -21,6 +25,7 @@ import base64
 import json
 import os
 import socket
+import struct
 import subprocess
 import sys
 import tempfile
@@ -28,388 +33,491 @@ import time
 import urllib.parse
 import urllib.request
 
-
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROME_CANDIDATES = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Google Chrome\Application\chrome.exe",
 ]
 
-# 三个验收视口。只有 1440x900 出全套九张人工验收截图；竖屏另出两张对比图。
 VIEWPORTS = [
-    {
-        "name": "desktop-1440x900", "width": 1440, "height": 900, "mobile": False,
-        "shotStops": {
-            0.00: "00-intro", 0.15: "01-entrance", 0.32: "02-shenyang-lathe",
-            0.62: "04-anshan-furnace", 0.85: "06-fushun-mine", 0.98: "08-finale",
-        },
-        "exhibitShots": {
-            "lathe": "03-lathe-explore",
-            "furnace": "05-furnace-explore",
-            "mine": "07-mine-explore",
-        },
-    },
-    {"name": "desktop-1280x720", "width": 1280, "height": 720, "mobile": False,
-     "shotStops": {}, "exhibitShots": {}},
-    {"name": "portrait-390x844", "width": 390, "height": 844, "mobile": True,
-     "shotStops": {0.32: "portrait-390x844-shenyang"},
-     "exhibitShots": {"lathe": "portrait-390x844-lathe-explore"}},
+    {"name": "desktop-1440x900", "width": 1440, "height": 900, "mobile": False},
+    {"name": "desktop-1280x720", "width": 1280, "height": 720, "mobile": False},
+    {"name": "portrait-390x844", "width": 390, "height": 844, "mobile": True},
 ]
 
-LEGACY_ROUTES = [
-    ("", "首页"),
-    ("hall", "铸造馆"),
-    ("cast", "亲手浇铸"),
-    ("entrance", "序厅"),
-    ("history", "通史馆"),
-]
+OLD_ROUTES = ["#/", "#/hall", "#/cast", "#/entrance", "#/history"]
 
-CHAPTER_STOPS = [
-    (0.00, None),
-    (0.15, None),
-    (0.32, "shenyang"),
-    (0.50, "anshan"),
-    (0.62, "anshan"),
-    (0.75, None),
-    (0.85, "fushun"),
-    (0.98, "finale"),
-]
-
-# 展品激活区间中心 —— 取景断言在这里采样。
-EXHIBIT_STOPS = [
-    ("lathe", 0.32),
-    ("furnace", 0.615),
-    ("mine", 0.85),
-]
-
-
-class WS:
-    def __init__(self, url):
-        parsed = urllib.parse.urlparse(url)
-        self.sock = socket.create_connection((parsed.hostname, parsed.port), timeout=30)
-        key = base64.b64encode(os.urandom(16)).decode()
-        path = parsed.path + (("?" + parsed.query) if parsed.query else "")
-        request = (
-            f"GET {path} HTTP/1.1\r\n"
-            f"Host: {parsed.hostname}:{parsed.port}\r\n"
-            "Upgrade: websocket\r\nConnection: Upgrade\r\n"
-            f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n"
-        )
-        self.sock.sendall(request.encode())
-        response = b""
-        while b"\r\n\r\n" not in response:
-            response += self.sock.recv(4096)
-        if b"101" not in response.split(b"\r\n", 1)[0]:
-            raise RuntimeError("CDP WebSocket handshake failed")
-        self.next_id = 1
-
-    def send(self, payload):
-        data = json.dumps(payload).encode()
-        header = bytearray([0x81])
-        size = len(data)
-        if size < 126:
-            header.append(0x80 | size)
-        elif size < 65536:
-            header.append(0x80 | 126)
-            header += size.to_bytes(2, "big")
-        else:
-            header.append(0x80 | 127)
-            header += size.to_bytes(8, "big")
-        mask = os.urandom(4)
-        header += mask
-        self.sock.sendall(bytes(header) + bytes(byte ^ mask[index % 4] for index, byte in enumerate(data)))
-
-    def read_exact(self, count):
-        result = b""
-        while len(result) < count:
-            chunk = self.sock.recv(count - len(result))
-            if not chunk:
-                raise EOFError("CDP socket closed")
-            result += chunk
-        return result
-
-    def receive(self):
-        first = self.read_exact(2)
-        size = first[1] & 0x7F
-        if size == 126:
-            size = int.from_bytes(self.read_exact(2), "big")
-        elif size == 127:
-            size = int.from_bytes(self.read_exact(8), "big")
-        payload = self.read_exact(size)
-        return json.loads(payload.decode(errors="replace")) if payload else {}
-
-    def call(self, method, params=None, timeout=45):
-        message_id = self.next_id
-        self.next_id += 1
-        self.send({"id": message_id, "method": method, "params": params or {}})
-        started = time.time()
-        while time.time() - started < timeout:
-            message = self.receive()
-            if message.get("id") == message_id:
-                if "error" in message:
-                    raise RuntimeError(f"{method}: {message['error']}")
-                return message.get("result", {})
-        raise TimeoutError(method)
-
-    def close(self):
-        self.sock.close()
+# 每个镜头取三个时刻：进入、中段、离开。
+LOCAL_STOPS = [0.05, 0.5, 0.95]
 
 
 def find_chrome():
     for path in CHROME_CANDIDATES:
         if os.path.exists(path):
             return path
-    raise RuntimeError("Chrome/Edge executable not found")
+    raise SystemExit("找不到本机 Chrome / Edge")
 
 
-def free_port():
-    sock = socket.socket()
-    sock.bind(("127.0.0.1", 0))
-    port = sock.getsockname()[1]
-    sock.close()
-    return port
+def find_port(start=9500):
+    for port in range(start, start + 60):
+        with socket.socket() as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue
+    raise SystemExit("找不到空闲端口")
 
 
-def wait_json(url, timeout=35):
-    started = time.time()
-    while time.time() - started < timeout:
+class WS:
+    """极简 CDP WebSocket 客户端（纯标准库）。"""
+
+    def __init__(self, url):
+        u = urllib.parse.urlparse(url)
+        self.sock = socket.create_connection((u.hostname, u.port), timeout=40)
+        key = base64.b64encode(os.urandom(16)).decode()
+        path = u.path + (("?" + u.query) if u.query else "")
+        req = (f"GET {path} HTTP/1.1\r\nHost: {u.hostname}:{u.port}\r\n"
+               "Upgrade: websocket\r\nConnection: Upgrade\r\n"
+               f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n")
+        self.sock.sendall(req.encode())
+        buf = b""
+        while b"\r\n\r\n" not in buf:
+            buf += self.sock.recv(4096)
+        if b"101" not in buf.split(b"\r\n")[0]:
+            raise RuntimeError("握手失败: " + buf[:200].decode(errors="replace"))
+
+    def send(self, obj):
+        payload = json.dumps(obj).encode()
+        header = bytearray([0x81])
+        n = len(payload)
+        mask = os.urandom(4)
+        if n < 126:
+            header.append(0x80 | n)
+        elif n < 65536:
+            header.append(0x80 | 126)
+            header += struct.pack(">H", n)
+        else:
+            header.append(0x80 | 127)
+            header += struct.pack(">Q", n)
+        self.sock.sendall(bytes(header) + mask
+                          + bytes(b ^ mask[i % 4] for i, b in enumerate(payload)))
+
+    def _rd(self, n):
+        buf = b""
+        while len(buf) < n:
+            chunk = self.sock.recv(n - len(buf))
+            if not chunk:
+                raise RuntimeError("socket closed")
+            buf += chunk
+        return buf
+
+    def recv(self):
+        head = self._rd(2)
+        length = head[1] & 0x7F
+        if length == 126:
+            length = struct.unpack(">H", self._rd(2))[0]
+        elif length == 127:
+            length = struct.unpack(">Q", self._rd(8))[0]
+        return json.loads(self._rd(length).decode())
+
+    def call(self, mid, method, params=None, timeout=60):
+        self.send({"id": mid, "method": method, "params": params or {}})
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            msg = self.recv()
+            if msg.get("id") == mid:
+                if "error" in msg:
+                    raise RuntimeError(f"{method}: {msg['error']}")
+                return msg.get("result", {})
+        raise RuntimeError(f"{method}: timeout")
+
+    def close(self):
         try:
-            with urllib.request.urlopen(url, timeout=2) as response:
-                return json.load(response)
+            self.sock.close()
+        except OSError:
+            pass
+
+
+def wait_devtools(port, timeout=45):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/json/version", timeout=5) as r:
+                return json.load(r)
         except Exception:
-            time.sleep(.25)
-    raise TimeoutError(url)
+            time.sleep(0.35)
+    return None
 
 
-def evaluate(ws, expression, await_promise=False):
-    result = ws.call("Runtime.evaluate", {
+def drain(ws, state, budget=1.0):
+    """把积压的 Runtime / Log 事件收干，避免污染下一个断言。"""
+    end = time.time() + budget
+    ws.sock.settimeout(0.25)
+    while time.time() < end:
+        try:
+            msg = ws.recv()
+        except Exception:
+            break
+        method = msg.get("method", "")
+        params = msg.get("params", {})
+        if method == "Runtime.consoleAPICalled":
+            entry = params.get("type", "")
+            text = " ".join(
+                str(a.get("value", a.get("description", ""))) for a in params.get("args", [])
+            )
+            state["console"].append({"type": entry, "text": text[:400]})
+        elif method == "Runtime.exceptionThrown":
+            details = params.get("exceptionDetails", {})
+            state["exceptions"].append(
+                str(details.get("exception", {}).get("description", details.get("text", "")))[:400]
+            )
+        elif method == "Log.entryAdded":
+            state["log"].append(params.get("entry", {}).get("level", ""))
+    ws.sock.settimeout(40)
+
+
+def evaluate(ws, mid, expression):
+    result = ws.call(mid, "Runtime.evaluate", {
         "expression": expression,
         "returnByValue": True,
-        "awaitPromise": await_promise,
-        "userGesture": True,
+        "awaitPromise": True,
     })
-    if result.get("exceptionDetails"):
-        raise RuntimeError(result["exceptionDetails"].get("text", "Runtime.evaluate failed"))
     return result.get("result", {}).get("value")
 
 
-def wait_until(ws, expression, timeout=20):
-    started = time.time()
-    while time.time() - started < timeout:
-        if evaluate(ws, expression):
-            return True
-        time.sleep(.1)
-    raise TimeoutError(expression)
+class Report:
+    def __init__(self):
+        self.rows = []
 
+    def check(self, group, name, ok, detail=""):
+        self.rows.append({"group": group, "name": name, "ok": bool(ok), "detail": detail})
+        return ok
 
-def run_journey_suite(ws, viewport, check, screenshot):
-    """单视口下的完整 Journey 验收。"""
-    name = viewport["name"]
-    structure = evaluate(ws, (
-        "({canvas:document.querySelectorAll('.liaoji-canvas-host canvas').length,"
-        "route:location.hash,"
-        "horizontal:document.documentElement.scrollWidth-document.documentElement.clientWidth})"
-    ))
-    check(structure["route"] == "#/journey", f"[{name}] #/journey loaded")
-    check(structure["canvas"] == 1, f"[{name}] single canvas")
-    check(structure["horizontal"] == 0, f"[{name}] no horizontal scroll")
+    @property
+    def failed(self):
+        return [r for r in self.rows if not r["ok"]]
 
-    last_position = None
-    for progress, chapter in CHAPTER_STOPS:
-        evaluate(ws, f"__liaoji.setProgress({progress})")
-        time.sleep(.12)
-        sample = evaluate(ws, "({state:__liaoji.state(), camera:__liaoji.camera()})")
-        check(abs(sample["state"]["visualProgress"] - progress) <= .0015, f"[{name}] progress {progress:.2f} synced")
-        check(sample["state"]["chapter"] == chapter, f"[{name}] chapter at {progress:.2f}")
-        position = sample["camera"]["position"]
-        if last_position is not None:
-            distance = sum((a - b) ** 2 for a, b in zip(position, last_position)) ** .5
-            check(distance > .05, f"[{name}] camera moves at {progress:.2f}")
-        last_position = position
-        screenshot(viewport["shotStops"].get(progress))
-
-    budget = {"calls": 0, "triangles": 0}
-    for stop in (0.32, 0.62):
-        evaluate(ws, f"__liaoji.setProgress({stop})")
-        time.sleep(.12)
-        info = evaluate(ws, "__liaoji.info()")
-        budget["calls"] = max(budget["calls"], info["calls"])
-        budget["triangles"] = max(budget["triangles"], info["triangles"])
-    print(f"  budget[{name}] draw calls {budget['calls']} / triangles {budget['triangles']}")
-    check(budget["calls"] < 80, f"[{name}] draw calls {budget['calls']} < 80")
-    check(budget["triangles"] < 50000, f"[{name}] triangles {budget['triangles']} < 50000")
-
-    tolerance = 8 if viewport["width"] >= 1000 else 4
-    for exhibit_id, progress in EXHIBIT_STOPS:
-        evaluate(ws, f"__liaoji.setProgress({progress})")
-        time.sleep(.15)
-        before = evaluate(ws, "({progress:__liaoji.state().rawProgress, scrollY:window.scrollY})")
-        check(evaluate(ws, "__liaoji.state().discoverableExhibitId") == exhibit_id,
-              f"[{name}] {exhibit_id} discoverable")
-
-        frame = evaluate(ws, f"__liaoji.heroFrame('{exhibit_id}')")
-        if not frame:
-            check(False, f"[{name}] {exhibit_id} heroFrame available")
-        else:
-            print(f"  frame[{name}] {exhibit_id} "
-                  f"L{frame['left']:.0f} T{frame['top']:.0f} R{frame['right']:.0f} B{frame['bottom']:.0f} "
-                  f"of {frame['width']}x{frame['height']} coverage {frame['coverage']:.3f}")
-            inside = (frame["left"] >= -tolerance and frame["top"] >= -tolerance
-                      and frame["right"] <= frame["width"] + tolerance
-                      and frame["bottom"] <= frame["height"] + tolerance)
-            check(inside, f"[{name}] {exhibit_id} hero fully framed")
-            check(frame["coverage"] > .03, f"[{name}] {exhibit_id} hero readable (coverage > 0.03)")
-
-        entered = evaluate(ws, f"__liaoji.enterExhibit('{exhibit_id}')", True)
-        check(entered is True and evaluate(ws, "__liaoji.state().mode") == "explore",
-              f"[{name}] {exhibit_id} enters explore")
-        screenshot(viewport["exhibitShots"].get(exhibit_id))
-        exited = evaluate(ws, "__liaoji.exitExplore()", True)
-        after = evaluate(ws, "({state:__liaoji.state(), scrollY:window.scrollY})")
-        check(exited is True and after["state"]["mode"] == "journey", f"[{name}] {exhibit_id} exits explore")
-        check(abs(after["state"]["rawProgress"] - before["progress"]) <= .001,
-              f"[{name}] {exhibit_id} progress restored")
-        check(abs(after["scrollY"] - before["scrollY"]) <= 2, f"[{name}] {exhibit_id} scroll restored")
-
-    errors = evaluate(ws, "window.__journeyErrors || ['error capture missing']") or []
-    if errors:
-        print(f"  console[{name}]:", json.dumps(errors, ensure_ascii=False))
-    check(not errors, f"[{name}] console clean")
-
-
-def run_legacy_smoke(ws, base_url, check):
-    """旧五条路由冒烟：确认 Journey 原型没有把它们带坏。"""
-    for key, label in LEGACY_ROUTES:
-        evaluate(ws, "window.__journeyErrors = []")
-        ws.call("Page.navigate", {"url": f"{base_url}/?debug=1#/{key}"})
-        time.sleep(1.4)
-        expected_hash = f"#/{key}" if key else "#/"
-        result = evaluate(ws, (
-            "({hash:location.hash,"
-            "root:document.getElementById('app')?.children.length||0,"
-            "horizontal:document.documentElement.scrollWidth-document.documentElement.clientWidth,"
-            "errors:window.__journeyErrors||[]})"
-        ))
-        check(result["hash"] == expected_hash, f"[legacy] {label} route {expected_hash}")
-        check(result["root"] > 0, f"[legacy] {label} rendered")
-        check(result["horizontal"] == 0, f"[legacy] {label} no horizontal scroll")
-        if result["errors"]:
-            print(f"  console[legacy {label}]:", json.dumps(result["errors"], ensure_ascii=False))
-        check(not result["errors"], f"[legacy] {label} console clean")
-
-        if key == "cast":
-            # 浇铸评分是纯函数引擎，搬目录不应影响它的自检能力。
-            # 注意：__cast.selfTest() 返回的是「全部断言」而非失败列表，
-            # 每项带 pass 字段，末尾还会 concat 一条汇总项。
-            results = evaluate(ws, "(window.__cast && window.__cast.selfTest()) || null")
-            if not isinstance(results, list):
-                check(False, "[legacy] 浇铸评分引擎 selfTest 可调用")
-            else:
-                failed = [item.get("name") for item in results if not item.get("pass")]
-                check(not failed, f"[legacy] 浇铸评分引擎 selfTest 全过（{len(results)} 项断言）")
-                for name in failed[:5]:
-                    print(f"        失败断言：{name}")
+    def summary(self):
+        total = len(self.rows)
+        bad = len(self.failed)
+        return f"{total - bad}/{total} 项通过"
 
 
 def main():
-    args = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
-    capture_shots = "--screenshots" in sys.argv
-    base_url = (args[0] if args else "http://127.0.0.1:4173").rstrip("/")
-    port = free_port()
-    profile = tempfile.mkdtemp(prefix="liaoji-cdp-")
-    process = subprocess.Popen([
-        find_chrome(),
-        "--headless=new",
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--disable-background-networking",
-        # 本机沙箱内 Chrome 自带 sandbox 无法初始化，必须显式关闭。
-        "--no-sandbox",
-        "--disable-gpu-sandbox",
-        "--disable-dev-shm-usage",
-        "--enable-webgl",
-        "--enable-unsafe-swiftshader",
-        "--use-angle=swiftshader",
-        "--window-size=1440,900",
-        f"--remote-debugging-port={port}",
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    screenshots = "--screenshots" in sys.argv
+    if not args:
+        print(__doc__)
+        return 2
+    base = args[0].rstrip("/")
+
+    chrome = find_chrome()
+    port = find_port()
+    profile = os.path.join(tempfile.gettempdir(), f"_liaoji-verify-{port}")
+    os.makedirs(profile, exist_ok=True)
+
+    flags = [
+        "--headless=new", "--no-first-run", "--no-default-browser-check",
+        "--disable-extensions", f"--remote-debugging-port={port}",
         f"--user-data-dir={profile}",
-        "about:blank",
-    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    ws = None
-    failures = []
-    shots_dir = os.path.join(ROOT, ".workbuddy", "shots", "journey")
+        "--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader",
+        "--window-size=1440,900", "--hide-scrollbars",
+        "--disable-features=Translate,BackForwardCache",
+        # 沙箱内必须关掉 Chrome 自带 sandbox，否则 GPU 进程退出 → CDP socket 断。
+        "--no-sandbox", "--disable-gpu-sandbox", "--disable-dev-shm-usage",
+        # 本机有系统代理，localhost 必须直连，否则拿到的是代理的 502。
+        "--no-proxy-server",
+    ]
+    print(f"启动 Chrome (port {port}) ...")
+    proc = subprocess.Popen([chrome] + flags + ["about:blank"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    def check(condition, message):
-        if condition:
-            print(f"PASS {message}")
-        else:
-            print(f"FAIL {message}")
-            failures.append(message)
-
-    def screenshot(name):
-        if not capture_shots or not name:
-            return
-        os.makedirs(shots_dir, exist_ok=True)
-        result = ws.call("Page.captureScreenshot", {"format": "png", "fromSurface": True})
-        path = os.path.join(shots_dir, name + ".png")
-        with open(path, "wb") as output:
-            output.write(base64.b64decode(result["data"]))
-        print(f"SHOT {path}")
-
+    report = Report()
+    readings = {}
     try:
-        wait_json(f"http://127.0.0.1:{port}/json/version")
-        request = urllib.request.Request(f"http://127.0.0.1:{port}/json/new?about:blank", method="PUT")
-        with urllib.request.urlopen(request, timeout=10) as response:
-            tab = json.load(response)
+        ver = wait_devtools(port)
+        if not ver:
+            print("FAIL: DevTools 端口不可达")
+            return 1
+        print("browser:", ver.get("Browser"))
+
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/json/new?about:blank", method="PUT")
+        with urllib.request.urlopen(req, timeout=15) as r:
+            tab = json.load(r)
         ws = WS(tab["webSocketDebuggerUrl"])
-        ws.call("Runtime.enable")
-        ws.call("Page.enable")
-        ws.call("Log.enable")
-        ws.call("Page.addScriptToEvaluateOnNewDocument", {"source": """
-          window.__journeyErrors = [];
-          addEventListener('error', event => window.__journeyErrors.push(String(event.message || event.error)));
-          addEventListener('unhandledrejection', event => window.__journeyErrors.push(String(event.reason)));
-          const originalConsoleError = console.error.bind(console);
-          console.error = (...args) => {
-            window.__journeyErrors.push(args.map(String).join(' '));
-            originalConsoleError(...args);
-          };
-        """})
+        mid = 1
+        for method in ("Runtime.enable", "Page.enable", "Log.enable"):
+            ws.call(mid, method)
+            mid += 1
 
-        for viewport in VIEWPORTS:
-            print(f"\n--- {viewport['name']} ---")
-            ws.call("Emulation.setDeviceMetricsOverride", {
-                "width": viewport["width"],
-                "height": viewport["height"],
-                "deviceScaleFactor": 1,
-                "mobile": viewport["mobile"],
+        # ---------------- 结构 ----------------
+        ws.call(mid, "Emulation.setDeviceMetricsOverride",
+                {"width": 1440, "height": 900, "deviceScaleFactor": 1, "mobile": False})
+        mid += 1
+        state = {"console": [], "exceptions": [], "log": []}
+        ws.call(mid, "Page.navigate", {"url": f"{base}/?debug=1#/journey"})
+        mid += 1
+        time.sleep(6)
+        drain(ws, state, 2.0)
+
+        struct_probe = r"""
+        (() => {
+          const out = {};
+          out.canvases = document.querySelectorAll('canvas').length;
+          out.horizontalOverflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+          out.scrollHeight = document.documentElement.scrollHeight;
+          out.hasApi = typeof window.__liaoji === 'object';
+          out.shotCount = window.__liaoji ? window.__liaoji.listShots().length : -1;
+          return out;
+        })()
+        """
+        s = evaluate(ws, mid, struct_probe)
+        mid += 1
+        readings["structure"] = s
+        report.check("结构", "单 Canvas", s.get("canvases") == 1, f"canvas={s.get('canvases')}")
+        report.check("结构", "无横向滚动", s.get("horizontalOverflow", 999) <= 0,
+                     f"overflow={s.get('horizontalOverflow')}px")
+        report.check("结构", "滚动轨道已按分镜权重拉长", s.get("scrollHeight", 0) > 12000,
+                     f"scrollHeight={s.get('scrollHeight')}px")
+        report.check("结构", "Debug 导演台可用", s.get("hasApi") is True)
+        # 9 开场 + 8 沈阳 + 4 铁路 + 12 鞍山 + 3 公路 + 6 抚顺 + 6 结尾 = 48
+        report.check("结构", "分镜表完整（48 个镜头）", s.get("shotCount") == 48,
+                     f"shots={s.get('shotCount')}")
+
+        console_errors = [c for c in state["console"] if c["type"] == "error"]
+        report.check("结构", "控制台零 error", not console_errors and not state["exceptions"],
+                     json.dumps(console_errors[:2] + state["exceptions"][:2], ensure_ascii=False)[:300])
+
+        # ---------------- 分镜可定位 + Camera 无 NaN ----------------
+        shots = evaluate(ws, mid, "window.__liaoji.listShots()")
+        mid += 1
+        bad_shots = []
+        for shot in shots:
+            for t in LOCAL_STOPS:
+                st = evaluate(ws, mid, f"window.__liaoji.setShot({json.dumps(shot['id'])}, {t})")
+                mid += 1
+                if not st:
+                    bad_shots.append({"id": shot["id"], "t": t, "reason": "setShot 返回 null"})
+                    continue
+                if st["shotId"] != shot["id"]:
+                    bad_shots.append({"id": shot["id"], "t": t, "reason": f"落到 {st['shotId']}"})
+                    continue
+                flat = list(st["camera"]["position"]) + list(st["camera"]["target"]) + [st["camera"]["fov"]]
+                if any((not isinstance(v, (int, float))) or v != v for v in flat):
+                    bad_shots.append({"id": shot["id"], "t": t, "reason": "Camera 出现 NaN"})
+        report.check("分镜", "全部镜头可定位且 Camera 无 NaN", not bad_shots,
+                     json.dumps(bad_shots[:3], ensure_ascii=False)[:300])
+
+        # ---------------- 镜头衔接 ----------------
+        continuity = evaluate(ws, mid, "window.__liaoji.shotContinuity(0.6)")
+        mid += 1
+        broken = [r for r in continuity if not r["ok"]]
+        readings["continuityBroken"] = broken[:6]
+        report.check("分镜", "非硬切镜头首尾相接", not broken,
+                     json.dumps(broken[:3], ensure_ascii=False)[:300])
+
+        # ---------------- 反向滚动 ----------------
+        reverse_bad = []
+        for step in range(20, -1, -1):
+            p = step / 20
+            # 用分号而不是 &&：setProgress(0) 返回 0，&& 会短路掉后面的读数。
+            evaluate(ws, mid, f"window.__liaoji.setProgress({p})")
+            mid += 1
+            st = evaluate(ws, mid, "window.__liaoji.shotState()")
+            mid += 1
+            if not st:
+                reverse_bad.append({"p": p, "reason": "shotState null"})
+                continue
+            flat = list(st["camera"]["position"]) + list(st["camera"]["target"])
+            if any(v != v for v in flat):
+                reverse_bad.append({"p": p, "reason": "NaN"})
+        report.check("滚动", "反向滚动 Camera 始终有限", not reverse_bad,
+                     json.dumps(reverse_bad[:3], ensure_ascii=False)[:300])
+
+        # ---------------- Explore 闭环 ----------------
+        expr = r"""
+        (async () => {
+          const before = window.__liaoji.setShot('SY_05_NOTICE', 0.6);
+          const saved = { p: before.camera.position, t: before.camera.target };
+          const entered = await window.__liaoji.enterExhibit('lathe');
+          const mode = window.__liaoji.state().mode;
+          const exited = await window.__liaoji.exitExplore();
+          const after = window.__liaoji.state();
+          const restored = window.__liaoji.camera();
+          const dx = Math.abs(restored.position[0] - saved.p[0]);
+          const dy = Math.abs(restored.position[1] - saved.p[1]);
+          const dz = Math.abs(restored.position[2] - saved.p[2]);
+          return { entered, mode, exited, afterMode: after.mode,
+                   drift: Math.max(dx, dy, dz) };
+        })()
+        """
+        explore = evaluate(ws, mid, expr)
+        mid += 1
+        readings["explore"] = explore
+        report.check("Explore", "C620-1 可进入", bool(explore) and explore.get("entered") is True)
+        report.check("Explore", "进入后进入 explore 模式",
+                     bool(explore) and explore.get("mode") == "explore",
+                     str(explore and explore.get("mode")))
+        report.check("Explore", "退出后回到 journey",
+                     bool(explore) and explore.get("afterMode") == "journey",
+                     str(explore and explore.get("afterMode")))
+        report.check("Explore", "原位返回精度 < 0.6m",
+                     bool(explore) and explore.get("drift", 9) < 0.6,
+                     f"drift={explore and explore.get('drift')}")
+
+        # ---------------- 取景 / 抚顺构图 ----------------
+        framed = evaluate(ws, mid,
+                          "window.__liaoji.setShot('SY_05_NOTICE', 0.75) && window.__liaoji.heroFrame('lathe')")
+        mid += 1
+        readings["latheFrame"] = framed
+        # CDP 的 returnByValue 会把 NaN / Infinity 序列化成 null，读数要能容忍。
+        lathe_cov = (framed or {}).get("coverage")
+        report.check("取景", "C620-1 在 Notice 镜头完整入镜",
+                     bool(framed) and framed.get("inside") is True,
+                     f"inside={framed and framed.get('inside')} "
+                     f"coverage={'n/a' if lathe_cov is None else round(lathe_cov, 3)} "
+                     f"sampled={framed and framed.get('sampled')}")
+
+        # 拆成两次求值：定位与读数之间要让浏览器跑完一帧，
+        # 否则 camera.matrixWorld 还没跟上，getWorldDirection 会拿到旧矩阵。
+        evaluate(ws, mid, "window.__liaoji.setShot('FS_06_GAZE', 1.0)")
+        mid += 1
+        time.sleep(0.3)
+        comp = evaluate(ws, mid, "window.__liaoji.fushunComposition()")
+        mid += 1
+        readings["fushun"] = comp
+        keys = ("cameraY", "pitchDeg", "heightCoverage")
+        if comp and all(comp.get(k) is not None for k in keys):
+            report.check("抚顺", "最终机位是极低机位（相机低于工人腰部）",
+                         -115.0 <= comp["cameraY"] <= -113.6, f"cameraY={round(comp['cameraY'], 3)}")
+            report.check("抚顺", "视线明显朝上（仰角 > 15°）",
+                         comp["pitchDeg"] > 15, f"pitch={round(comp['pitchDeg'], 2)}°")
+            report.check("抚顺", "工人被广角拉高（占屏高度 > 35%）",
+                         comp["heightCoverage"] > 0.35,
+                         f"coverage={round(comp['heightCoverage'], 3)}")
+            report.check("抚顺", "工人没有被人为拉长（占屏高度 < 100%）",
+                         comp["heightCoverage"] < 1.0, f"coverage={round(comp['heightCoverage'], 3)}")
+        else:
+            report.check("抚顺", "抚顺构图读数可取", False,
+                         json.dumps(comp, ensure_ascii=False)[:200])
+
+        # ---------------- 性能读数 ----------------
+        perf = {}
+        for shot_id, label in [("OP_01_SWITCH", "开场"), ("SY_02_ALIVE", "沈阳"),
+                               ("TR_03_MOTION", "铁路"), ("AS_03_INNER", "鞍山"),
+                               ("RD_02_TRANSIT", "公路"), ("FS_02_DIVE_A", "抚顺俯冲")]:
+            perf[label] = evaluate(
+                ws, mid,
+                f"window.__liaoji.setShot({json.dumps(shot_id)}, 0.5) && window.__liaoji.info()")
+            mid += 1
+        readings["perf"] = perf
+        worst = max((v or {}).get("calls", 0) for v in perf.values())
+        report.check("性能", "单镜头 draw call < 420", worst < 420, f"worst={worst}")
+
+        # ---------------- 旧路由冒烟 ----------------
+        route_bad = []
+        for route in OLD_ROUTES:
+            st = {"console": [], "exceptions": [], "log": []}
+            ws.call(mid, "Page.navigate", {"url": f"{base}/{route}"})
+            mid += 1
+            time.sleep(3)
+            drain(ws, st, 1.2)
+            errs = [c for c in st["console"] if c["type"] == "error"]
+            if errs or st["exceptions"]:
+                route_bad.append({"route": route, "errors": errs[:1] + st["exceptions"][:1]})
+        report.check("旧路由", "五条旧路由无 console error", not route_bad,
+                     json.dumps(route_bad[:2], ensure_ascii=False)[:300])
+
+        # ---------------- 三视口 ----------------
+        for vp in VIEWPORTS:
+            ws.call(mid, "Emulation.setDeviceMetricsOverride", {
+                "width": vp["width"], "height": vp["height"],
+                "deviceScaleFactor": 1, "mobile": vp["mobile"],
             })
-            ws.call("Page.navigate", {"url": f"{base_url}/?debug=1#/journey"})
-            wait_until(ws, "Boolean(window.__liaoji)", 30)
-            time.sleep(.6)
-            run_journey_suite(ws, viewport, check, screenshot)
+            mid += 1
+            ws.call(mid, "Page.navigate", {"url": f"{base}/?debug=1#/journey"})
+            mid += 1
+            time.sleep(5)
+            probe = evaluate(ws, mid, r"""
+            (() => ({
+              overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+              fov: window.__liaoji ? window.__liaoji.shotState().camera.fov : null,
+            }))()
+            """)
+            mid += 1
+            report.check(f"视口 {vp['name']}", "无横向滚动",
+                         bool(probe) and probe.get("overflow", 999) <= 0, str(probe))
+            report.check(f"视口 {vp['name']}", "FOV 有竖屏补偿",
+                         bool(probe) and isinstance(probe.get("fov"), (int, float))
+                         and 18 <= probe["fov"] <= 96,
+                         f"fov={probe and probe.get('fov')}")
 
-        print("\n--- legacy routes ---")
-        run_legacy_smoke(ws, base_url, check)
-    except Exception as error:
-        failures.append(str(error))
-        print("ERROR", error)
+        # ---------------- 截图（人工验收用） ----------------
+        if screenshots:
+            ws.call(mid, "Emulation.setDeviceMetricsOverride",
+                    {"width": 1440, "height": 900, "deviceScaleFactor": 1, "mobile": False})
+            mid += 1
+            ws.call(mid, "Page.navigate", {"url": f"{base}/?debug=1#/journey"})
+            mid += 1
+            time.sleep(6)
+            out_dir = os.path.join(ROOT, "tools", "screenshots-cinematic")
+            os.makedirs(out_dir, exist_ok=True)
+            gallery = [
+                ("01-opening", "OP_01_SWITCH", 0.7),
+                ("02-title", "OP_08_TITLE", 0.8),
+                ("03-door", "OP_09_DOOR", 0.9),
+                ("04-shenyang-enter", "SY_01_ENTER", 0.6),
+                ("05-shenyang-alive", "SY_02_ALIVE", 0.6),
+                ("06-lathe-notice", "SY_05_NOTICE", 0.7),
+                ("07-bench", "SY_07_BENCH", 0.7),
+                ("08-rail", "TR_03_MOTION", 0.6),
+                ("09-anshan-scale", "AS_01_SCALE", 0.8),
+                ("10-furnace-inner", "AS_03_INNER", 0.6),
+                ("11-tap", "AS_06_TAP", 0.85),
+                ("12-truck", "AS_08_TRUCK", 0.95),
+                ("13-road", "RD_02_TRANSIT", 0.6),
+                ("14-pit-rim", "FS_01_RIM", 0.9),
+                ("15-dive", "FS_02_DIVE_A", 0.7),
+                ("16-land", "FS_05_LAND", 1.0),
+                ("17-gaze", "FS_06_GAZE", 1.0),
+                ("18-ending", "EN_03_TITLE", 0.7),
+            ]
+            for name, shot_id, t in gallery:
+                evaluate(ws, mid, f"window.__liaoji.setShot({json.dumps(shot_id)}, {t})")
+                mid += 1
+                time.sleep(0.45)
+                shot = ws.call(mid, "Page.captureScreenshot", {"format": "png"})
+                mid += 1
+                with open(os.path.join(out_dir, f"{name}.png"), "wb") as fh:
+                    fh.write(base64.b64decode(shot["data"]))
+            print(f"截图已写入 {out_dir}")
+
+        # ---------------- 控制台复查 ----------------
+        drain(ws, state, 1.5)
+        late = [c for c in state["console"] if c["type"] == "error"]
+        report.check("结构", "全程无新增 console error", not late and not state["exceptions"],
+                     json.dumps(late[:2], ensure_ascii=False)[:260])
+
+        out_path = os.path.join(ROOT, "tools", "cinematic-verify.json")
+        with open(out_path, "w", encoding="utf-8") as fh:
+            json.dump({"rows": report.rows, "readings": readings}, fh, ensure_ascii=False, indent=2)
+        print(f"\n读数已写入 {out_path}")
     finally:
-        if ws:
-            ws.close()
-        process.terminate()
-        try:
-            process.wait(timeout=8)
-        except subprocess.TimeoutExpired:
-            process.kill()
+        proc.kill()
 
-    if failures:
-        print(f"\n{len(failures)} failure(s)")
-        return 1
-    print("\nJourney verification passed")
-    return 0
+    print("\n—— 验收结果 ——")
+    current_group = None
+    for row in report.rows:
+        if row["group"] != current_group:
+            current_group = row["group"]
+            print(f"\n[{current_group}]")
+        flag = "PASS" if row["ok"] else "FAIL"
+        detail = f"  <- {row['detail']}" if row["detail"] and not row["ok"] else ""
+        print(f"  {flag}  {row['name']}{detail}")
+    print(f"\n合计 {report.summary()}")
+    return 1 if report.failed else 0
 
 
 if __name__ == "__main__":

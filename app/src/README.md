@@ -24,7 +24,7 @@ src/
     exhibits/            正式工业展品资产
       lathe.js  cupola.js  crane.js  ladle.js  sandboxes.js  toolcart.js
     journey/             连续参观路线、镜头与 Explore 主线（《辽迹》的产品骨架）
-      Experience.js  JourneyController.js  JourneyMap.js  CameraRig.js
+      Experience.js  JourneyController.js  CinematicDirector.js  storyboard.js  CameraRig.js
       InteractionManager.js  PointerIntent.js  ScrollLock.js
       data.js              策展路线：相机控制点 / 分段 / 章节 / 展品 / 灯光停点
       world/               白盒博物馆与三个 Proxy 展品、章节灯光

@@ -189,13 +189,185 @@
   border-bottom: 1px solid var(--liaoji-accent);
 }
 
+/* ------------------------------------------------------------------
+   B 类文字：Cinematic Caption。
+   在运动过程中短暂出现，随镜头离开而消失。不是常驻信息卡。
+   ------------------------------------------------------------------ */
+.liaoji-caption {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(64px, 13vh, 140px);
+  transform: translateX(-50%);
+  max-width: min(44ch, 78vw);
+  margin: 0;
+  opacity: 0;
+  color: var(--liaoji-ink);
+  font-size: clamp(20px, 2.3vw, 34px);
+  font-weight: 400;
+  letter-spacing: .1em;
+  line-height: 1.35;
+  text-align: center;
+  text-shadow: 0 2px 30px rgba(0, 0, 0, .65);
+  transition: opacity .18s linear;
+}
+
+/* Notice：极小的一条提示。用户可以继续滚动略过，它不打断镜头。 */
+.liaoji-hint {
+  position: absolute;
+  left: clamp(24px, 5vw, 72px);
+  bottom: clamp(20px, 5vh, 48px);
+  margin: 0;
+  opacity: 0;
+  color: var(--liaoji-ink);
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .55);
+  transition: opacity .2s ease;
+}
+
 .liaoji-scroll-track {
   position: relative;
   z-index: 0;
   width: 1px;
-  height: 1100vh;
-  min-height: 1100dvh;
+  /* 实际高度由 storyboard 的 SCROLL_VH 写入，这里只是无 JS 时的兜底。 */
+  height: 2000vh;
+  min-height: 2000dvh;
   pointer-events: none;
+}
+
+/* ------------------------------------------------------------------
+   互动控制台：只在 Explore 出现。
+   刻意不做「左侧卡片 + 右侧 3D」的网页版式。
+   ------------------------------------------------------------------ */
+.liaoji-console {
+  position: absolute;
+  left: clamp(20px, 4vw, 64px);
+  bottom: clamp(24px, 6vh, 72px);
+  width: min(370px, calc(100vw - 40px));
+  padding: 18px 20px 20px;
+  border: 1px solid rgba(242, 238, 230, .2);
+  background: rgba(14, 17, 22, .84);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.liaoji-console[hidden] {
+  display: none;
+}
+
+.liaoji-console__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(242, 238, 230, .16);
+}
+
+.liaoji-console__step {
+  color: var(--liaoji-accent);
+  font-family: var(--font-num);
+  font-size: 11px;
+  letter-spacing: .14em;
+}
+
+.liaoji-console__head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: .08em;
+}
+
+.liaoji-console__body {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+}
+
+.liaoji-console__parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.liaoji-console__parts button,
+.liaoji-console__actions button {
+  padding: 7px 12px;
+  border: 1px solid rgba(242, 238, 230, .32);
+  color: var(--liaoji-ink);
+  font-size: 12px;
+  letter-spacing: .08em;
+  background: transparent;
+}
+
+.liaoji-console__parts button.is-active,
+.liaoji-console__actions button.is-active {
+  border-color: var(--liaoji-accent);
+  background: rgba(232, 102, 60, .16);
+}
+
+.liaoji-console__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.liaoji-console__note {
+  margin: 0;
+  color: var(--liaoji-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.liaoji-console__feed {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: .1em;
+}
+
+.liaoji-console__feed input {
+  width: 100%;
+  accent-color: var(--liaoji-accent);
+}
+
+.liaoji-console__primary {
+  justify-self: start;
+  padding: 9px 0 7px;
+  border-bottom: 1px solid var(--liaoji-accent);
+  color: var(--liaoji-ink);
+  font-size: 13px;
+  letter-spacing: .1em;
+}
+
+.liaoji-console__archive {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--liaoji-accent);
+  background: rgba(242, 238, 230, .06);
+}
+
+.liaoji-console__archive strong {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: .06em;
+}
+
+.liaoji-console__archive span {
+  color: var(--liaoji-accent);
+  font-family: var(--font-num);
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+
+.liaoji-console__archive p {
+  margin: 0;
+  color: var(--liaoji-muted);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .liaoji-experience[data-mode="explore"] .liaoji-canvas-host canvas,

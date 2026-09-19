@@ -4,11 +4,7 @@
 
 import * as THREE from 'three';
 
-const LABELS = {
-  lathe: '探索机床',
-  furnace: '探索高炉',
-  mine: '探索矿业设备',
-};
+const FALLBACK_LABEL = '探索';
 
 export class ExhibitMarker {
   constructor({ element, camera, host, onActivate }) {
@@ -24,7 +20,7 @@ export class ExhibitMarker {
   show(exhibit) {
     this.current = exhibit;
     this.element.hidden = false;
-    this.element.setAttribute('aria-label', LABELS[exhibit.id] ?? '探索展品');
+    this.element.setAttribute('aria-label', exhibit.label ?? FALLBACK_LABEL);
   }
 
   hide() {

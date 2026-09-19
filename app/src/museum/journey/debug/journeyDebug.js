@@ -1,11 +1,23 @@
 /* ============================================================
-   journeyDebug.js — ?debug=1#/journey 调试与自动验收接口
+   journeyDebug.js — ?debug=1#/journey 的导演台与自动验收接口
+
+   升级点（相对旧白盒）：
+     __liaoji.currentShot()     当前镜头
+     __liaoji.listShots()       全片镜头表
+     __liaoji.shotState()       镜头 + localT + Camera + Env 读数
+     __liaoji.setShot(id, t)    直接定位到某个镜头的某个时刻
+     __liaoji.shotContinuity()  非硬切镜头之间的位置连续性体检
+     __liaoji.showPaths()       一次画出全片 Position / Target 两条路径
+     __liaoji.fushunComposition() 抚顺最终构图读数（本轮必须人工验收的镜头）
    ============================================================ */
 
 import * as THREE from 'three';
-import { CAMERA_POINTS, EXHIBITS } from '../data.js';
+import { SHOTS } from '../storyboard.js';
+import { CinematicDirector } from '../CinematicDirector.js';
+import { samplePath } from '../CameraRig.js';
 
 function disposeGroup(group) {
+  if (!group) return;
   const geometries = new Set();
   const materials = new Set();
   group.traverse((object) => {
@@ -18,103 +30,93 @@ function disposeGroup(group) {
   group.removeFromParent();
 }
 
-function buildPathGroup(experience) {
+function vec(path, t) {
+  const out = new THREE.Vector3();
+  samplePath(path, t, out);
+  return out;
+}
+
+/** 全片镜头的 Position（青）+ Target（橙）两条路径，一次画完。 */
+function buildStoryboardPaths(experience) {
   const group = new THREE.Group();
-  group.name = 'debug_camera_path';
-  const points = experience.cameraRig.positionCurve.getSpacedPoints(180);
-  const line = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(points),
+  group.name = 'debug_shot_paths';
+  const SAMPLES = 10;
+  const posPoints = [];
+  const targetPoints = [];
+  const dotGeo = new THREE.SphereGeometry(0.5, 8, 6);
+  const dotMatCut = new THREE.MeshBasicMaterial({ color: 0xff5a5a, depthTest: false });
+  const dotMatLink = new THREE.MeshBasicMaterial({ color: 0x8affc0, depthTest: false });
+
+  for (const shot of SHOTS) {
+    const paths = experience.cameraRig.getPaths(shot);
+    for (let i = 0; i < SAMPLES; i += 1) {
+      posPoints.push(vec(paths.position, i / SAMPLES), vec(paths.position, (i + 1) / SAMPLES));
+      targetPoints.push(vec(paths.target, i / SAMPLES), vec(paths.target, (i + 1) / SAMPLES));
+    }
+    const dot = new THREE.Mesh(dotGeo, shot.cut ? dotMatCut : dotMatLink);
+    dot.name = `debug_shot_start_${shot.id}`;
+    dot.position.copy(vec(paths.position, 0));
+    dot.renderOrder = 30;
+    group.add(dot);
+  }
+
+  const posLine = new THREE.LineSegments(
+    new THREE.BufferGeometry().setFromPoints(posPoints),
     new THREE.LineBasicMaterial({ color: 0x42d7ff, depthTest: false }),
   );
-  line.renderOrder = 20;
-  group.add(line);
-
-  const geometry = new THREE.SphereGeometry(.16, 10, 8);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false });
-  CAMERA_POINTS.forEach((point, index) => {
-    const marker = new THREE.Mesh(geometry, material);
-    marker.name = `debug_path_point_${index}`;
-    marker.position.set(...point);
-    marker.renderOrder = 21;
-    group.add(marker);
-  });
+  posLine.name = 'debug_paths_position';
+  const targetLine = new THREE.LineSegments(
+    new THREE.BufferGeometry().setFromPoints(targetPoints),
+    new THREE.LineBasicMaterial({ color: 0xff9a4a, depthTest: false }),
+  );
+  targetLine.name = 'debug_paths_target';
+  posLine.renderOrder = 29;
+  targetLine.renderOrder = 29;
+  group.add(posLine, targetLine);
   return group;
 }
 
-function buildZonesGroup(experience) {
-  const group = new THREE.Group();
-  group.name = 'debug_exhibit_zones';
-  const colors = [0x69e3ff, 0xff9654, 0xa9df77];
-
-  EXHIBITS.forEach((exhibit, index) => {
-    const color = colors[index];
-    const anchor = new THREE.Vector3(...exhibit.anchor);
-    const explorePosition = new THREE.Vector3(...exhibit.explorePose.position);
-    const exploreTarget = new THREE.Vector3(...exhibit.explorePose.target);
-    const startT = experience.journeyMap.toPathT(exhibit.activationRange[0]);
-    const endT = experience.journeyMap.toPathT(exhibit.activationRange[1]);
-    const zonePoints = [];
-    for (let i = 0; i <= 30; i += 1) {
-      zonePoints.push(experience.cameraRig.positionCurve.getPointAt(
-        THREE.MathUtils.lerp(startT, endT, i / 30),
-      ));
-    }
-    const zoneLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(zonePoints),
-      new THREE.LineBasicMaterial({ color, linewidth: 2, depthTest: false }),
-    );
-    zoneLine.name = `debug_zone_${exhibit.id}`;
-    zoneLine.renderOrder = 22;
-    group.add(zoneLine);
-
-    const anchorMarker = new THREE.Mesh(
-      new THREE.SphereGeometry(.34, 12, 8),
-      new THREE.MeshBasicMaterial({ color, depthTest: false }),
-    );
-    anchorMarker.name = `debug_anchor_${exhibit.id}`;
-    anchorMarker.position.copy(anchor);
-    anchorMarker.renderOrder = 23;
-    group.add(anchorMarker);
-
-    const poseMarker = new THREE.Mesh(
-      new THREE.ConeGeometry(.28, .65, 8),
-      new THREE.MeshBasicMaterial({ color, wireframe: true, depthTest: false }),
-    );
-    poseMarker.name = `debug_explore_pose_${exhibit.id}`;
-    poseMarker.position.copy(explorePosition);
-    poseMarker.lookAt(exploreTarget);
-    poseMarker.renderOrder = 23;
-    group.add(poseMarker);
-
-    const sightLine = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints([explorePosition, exploreTarget]),
-      new THREE.LineDashedMaterial({ color, dashSize: .35, gapSize: .2, depthTest: false }),
-    );
-    sightLine.computeLineDistances();
-    sightLine.renderOrder = 22;
-    group.add(sightLine);
-  });
-  return group;
+/** 非硬切镜头之间必须首尾相接。这把「分镜表写错了」变成一条可复现读数。 */
+function shotContinuity(experience, threshold) {
+  const rows = [];
+  for (let i = 0; i < SHOTS.length - 1; i += 1) {
+    const current = SHOTS[i];
+    const next = SHOTS[i + 1];
+    const currentPaths = experience.cameraRig.getPaths(current);
+    const nextPaths = experience.cameraRig.getPaths(next);
+    const positionGap = vec(currentPaths.position, 1).distanceTo(vec(nextPaths.position, 0));
+    const targetGap = vec(currentPaths.target, 1).distanceTo(vec(nextPaths.target, 0));
+    const gap = Math.max(positionGap, targetGap);
+    rows.push({
+      from: current.id,
+      to: next.id,
+      cut: Boolean(next.cut),
+      positionGap,
+      targetGap,
+      ok: Boolean(next.cut) || gap <= threshold,
+    });
+  }
+  return rows;
 }
 
 export function createJourneyDebug(experience) {
   if (!new URLSearchParams(location.search).has('debug')) return { dispose() {} };
 
-  const pathGroup = buildPathGroup(experience);
-  const zonesGroup = buildZonesGroup(experience);
+  const pathGroup = buildStoryboardPaths(experience);
   pathGroup.visible = false;
-  zonesGroup.visible = false;
-  experience.scene.add(pathGroup, zonesGroup);
+  experience.scene.add(pathGroup);
 
   const api = {
     state() {
       const state = experience.state;
+      const frame = experience.state.frame;
       return {
         mode: state.mode,
         rawProgress: state.rawProgress,
         visualProgress: state.visualProgress,
-        pathT: state.pathT,
         chapter: state.chapter,
+        shotId: frame?.shot?.id ?? null,
+        localT: frame?.localT ?? null,
         discoverableExhibitId: state.discoverableExhibitId,
         exploringExhibitId: state.exploringExhibitId,
         savedProgress: state.savedProgress,
@@ -136,9 +138,75 @@ export function createJourneyDebug(experience) {
         fov: experience.camera.fov,
       };
     },
+    currentShot() {
+      return experience.director?.state?.shot?.id ?? null;
+    },
+    listShots() {
+      return experience.director?.listShots() ?? [];
+    },
+    shotState() {
+      return experience.director?.shotState() ?? null;
+    },
+    setShot(shotId, localT = 0.5) {
+      const progress = CinematicDirector.progressOf(shotId, localT);
+      if (progress === null) return null;
+      experience.setProgress(progress);
+      return experience.director?.shotState() ?? null;
+    },
+    shotContinuity(threshold = 0.6) {
+      return shotContinuity(experience, threshold);
+    },
+    setProgress(progress) {
+      return experience.setProgress(progress);
+    },
+    enterExhibit(id) {
+      return experience.enterExplore(id);
+    },
+    exitExplore() {
+      return experience.exitExplore();
+    },
+    showPaths(visible = true) {
+      pathGroup.visible = Boolean(visible);
+      return pathGroup.visible;
+    },
+    /** 拾取画面中心（或指定 NDC 坐标）的物体，定位“这挡住画面的是什么”。 */
+    pickCenter(ndcX = 0, ndcY = 0) {
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), experience.camera);
+      const hits = raycaster.intersectObjects(experience.world.root.children, true);
+      return hits.slice(0, 6).map((hit) => ({
+        name: hit.object.name,
+        parent: hit.object.parent?.name ?? null,
+        distance: hit.distance,
+        point: hit.point.toArray().map((v) => Math.round(v * 100) / 100),
+      }));
+    },
+    /** 抚顺最终构图：相机高度、仰角、工人占屏高度比 —— 本轮必须人工验收的镜头 */
+    fushunComposition() {
+      const worker = experience.world?.heroWorker?.root;
+      if (!worker) return null;
+      const box = new THREE.Box3().setFromObject(worker);
+      const camera = experience.camera;
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const distance = camera.position.distanceTo(center);
+      const direction = new THREE.Vector3();
+      camera.getWorldDirection(direction);
+      const pitchDeg = THREE.MathUtils.radToDeg(Math.asin(
+        THREE.MathUtils.clamp(direction.y, -1, 1),
+      ));
+      const visibleHeight = 2 * distance * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+      return {
+        cameraY: camera.position.y,
+        workerHeight: size.y,
+        distance,
+        pitchDeg,
+        heightCoverage: size.y / visibleHeight,
+      };
+    },
     heroFrame(id) {
       if (!experience.available) return null;
-      const entry = experience.world.exhibits.get(id);
+      const entry = experience.world.interactables.get(id);
       if (!entry) return null;
       const width = experience.host.clientWidth;
       const height = experience.host.clientHeight;
@@ -150,55 +218,44 @@ export function createJourneyDebug(experience) {
       let bottom = -Infinity;
       let behind = false;
       let sampled = 0;
-      // 用真实顶点而不是 Box3 的八个角：圆柱／长臂的轴对齐包围盒远大于可见轮廓，
-      // 拿它做取景判据会一直误报裁切。
+      // 只判断机器本体：标注引线、标签板、切屑粒子都是附属物，
+      // 把它们算进包围盒会让「是否入镜」永远不成立。
+      const roots = entry.pickTargets?.length ? entry.pickTargets : [entry.root];
       entry.root.updateWorldMatrix(true, true);
-      entry.root.traverse((object) => {
-        if (!object.isMesh || !object.geometry) return;
-        const position = object.geometry.getAttribute('position');
-        if (!position) return;
-        const stride = Math.max(1, Math.floor(position.count / 240));
-        for (let i = 0; i < position.count; i += stride) {
-          vertex.fromBufferAttribute(position, i).applyMatrix4(object.matrixWorld).project(camera);
-          if (vertex.z < -1 || vertex.z > 1) behind = true;
-          const screenX = (vertex.x * .5 + .5) * width;
-          const screenY = (-vertex.y * .5 + .5) * height;
-          left = Math.min(left, screenX);
-          right = Math.max(right, screenX);
-          top = Math.min(top, screenY);
-          bottom = Math.max(bottom, screenY);
-          sampled += 1;
+      const visit = (node) => {
+        if (!node.visible) return;
+        if (node.isMesh && node.geometry) {
+          const position = node.geometry.getAttribute('position');
+          if (position) {
+            const stride = Math.max(1, Math.floor(position.count / 240));
+            for (let i = 0; i < position.count; i += stride) {
+              vertex.fromBufferAttribute(position, i).applyMatrix4(node.matrixWorld).project(camera);
+              // 视锥外（相机背后 / 越过远裁面）与退化投影都不参与取景读数：
+              // 它们的屏幕坐标会是 ±Infinity，会把包围盒整个撑爆。
+              if (vertex.z < -1 || vertex.z > 1) {
+                behind = true;
+                continue;
+              }
+              if (!Number.isFinite(vertex.x) || !Number.isFinite(vertex.y)) continue;
+              const screenX = (vertex.x * 0.5 + 0.5) * width;
+              const screenY = (-vertex.y * 0.5 + 0.5) * height;
+              left = Math.min(left, screenX);
+              right = Math.max(right, screenX);
+              top = Math.min(top, screenY);
+              bottom = Math.max(bottom, screenY);
+              sampled += 1;
+            }
+          }
         }
-      });
+        node.children.forEach(visit);
+      };
+      roots.forEach(visit);
       if (!sampled) return null;
       return {
-        width,
-        height,
-        left,
-        top,
-        right,
-        bottom,
-        sampled,
+        width, height, left, top, right, bottom, sampled,
         coverage: ((right - left) / width) * ((bottom - top) / height),
         inside: !behind && left >= 0 && top >= 0 && right <= width && bottom <= height,
       };
-    },
-    setProgress(progress) {
-      return experience.setProgress(progress);
-    },
-    enterExhibit(id) {
-      return experience.enterExplore(id);
-    },
-    exitExplore() {
-      return experience.exitExplore();
-    },
-    showPath(visible = true) {
-      pathGroup.visible = Boolean(visible);
-      return pathGroup.visible;
-    },
-    showZones(visible = true) {
-      zonesGroup.visible = Boolean(visible);
-      return zonesGroup.visible;
     },
   };
 
@@ -207,7 +264,6 @@ export function createJourneyDebug(experience) {
     dispose() {
       if (window.__liaoji === api) delete window.__liaoji;
       disposeGroup(pathGroup);
-      disposeGroup(zonesGroup);
     },
   };
 }

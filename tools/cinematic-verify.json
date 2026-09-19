@@ -1,0 +1,239 @@
+{
+  "rows": [
+    {
+      "group": "结构",
+      "name": "单 Canvas",
+      "ok": true,
+      "detail": "canvas=1"
+    },
+    {
+      "group": "结构",
+      "name": "无横向滚动",
+      "ok": true,
+      "detail": "overflow=0px"
+    },
+    {
+      "group": "结构",
+      "name": "滚动轨道已按分镜权重拉长",
+      "ok": true,
+      "detail": "scrollHeight=18000px"
+    },
+    {
+      "group": "结构",
+      "name": "Debug 导演台可用",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "group": "结构",
+      "name": "分镜表完整（48 个镜头）",
+      "ok": true,
+      "detail": "shots=48"
+    },
+    {
+      "group": "结构",
+      "name": "控制台零 error",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "分镜",
+      "name": "全部镜头可定位且 Camera 无 NaN",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "分镜",
+      "name": "非硬切镜头首尾相接",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "滚动",
+      "name": "反向滚动 Camera 始终有限",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Explore",
+      "name": "C620-1 可进入",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "group": "Explore",
+      "name": "进入后进入 explore 模式",
+      "ok": true,
+      "detail": "explore"
+    },
+    {
+      "group": "Explore",
+      "name": "退出后回到 journey",
+      "ok": true,
+      "detail": "journey"
+    },
+    {
+      "group": "Explore",
+      "name": "原位返回精度 < 0.6m",
+      "ok": true,
+      "detail": "drift=0.0033941229824137054"
+    },
+    {
+      "group": "取景",
+      "name": "C620-1 在 Notice 镜头完整入镜",
+      "ok": true,
+      "detail": "inside=True coverage=0.215 sampled=360"
+    },
+    {
+      "group": "抚顺",
+      "name": "最终机位是极低机位（相机低于工人腰部）",
+      "ok": true,
+      "detail": "cameraY=-114.24"
+    },
+    {
+      "group": "抚顺",
+      "name": "视线明显朝上（仰角 > 15°）",
+      "ok": true,
+      "detail": "pitch=37.19°"
+    },
+    {
+      "group": "抚顺",
+      "name": "工人被广角拉高（占屏高度 > 35%）",
+      "ok": true,
+      "detail": "coverage=0.496"
+    },
+    {
+      "group": "抚顺",
+      "name": "工人没有被人为拉长（占屏高度 < 100%）",
+      "ok": true,
+      "detail": "coverage=0.496"
+    },
+    {
+      "group": "性能",
+      "name": "单镜头 draw call < 420",
+      "ok": true,
+      "detail": "worst=179"
+    },
+    {
+      "group": "旧路由",
+      "name": "五条旧路由无 console error",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "视口 desktop-1440x900",
+      "name": "无横向滚动",
+      "ok": true,
+      "detail": "{'overflow': 0, 'fov': 32}"
+    },
+    {
+      "group": "视口 desktop-1440x900",
+      "name": "FOV 有竖屏补偿",
+      "ok": true,
+      "detail": "fov=32"
+    },
+    {
+      "group": "视口 desktop-1280x720",
+      "name": "无横向滚动",
+      "ok": true,
+      "detail": "{'overflow': 0, 'fov': 32}"
+    },
+    {
+      "group": "视口 desktop-1280x720",
+      "name": "FOV 有竖屏补偿",
+      "ok": true,
+      "detail": "fov=32"
+    },
+    {
+      "group": "视口 portrait-390x844",
+      "name": "无横向滚动",
+      "ok": true,
+      "detail": "{'overflow': 0, 'fov': 39.68}"
+    },
+    {
+      "group": "视口 portrait-390x844",
+      "name": "FOV 有竖屏补偿",
+      "ok": true,
+      "detail": "fov=39.68"
+    },
+    {
+      "group": "结构",
+      "name": "全程无新增 console error",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "readings": {
+    "structure": {
+      "canvases": 1,
+      "horizontalOverflow": 0,
+      "scrollHeight": 18000,
+      "hasApi": true,
+      "shotCount": 48
+    },
+    "continuityBroken": [],
+    "explore": {
+      "entered": true,
+      "mode": "explore",
+      "exited": true,
+      "afterMode": "journey",
+      "drift": 0.0033941229824137054
+    },
+    "latheFrame": {
+      "width": 1440,
+      "height": 900,
+      "left": 340.0354136127751,
+      "top": 267.67483917063265,
+      "right": 1034.8471547591669,
+      "bottom": 669.1475198346557,
+      "sampled": 360,
+      "coverage": 0.21523760206394998,
+      "inside": true
+    },
+    "fushun": {
+      "cameraY": -114.24006014857694,
+      "workerHeight": 1.8423761723344683,
+      "distance": 2.9721310197663393,
+      "pitchDeg": 37.18921095568353,
+      "heightCoverage": 0.4960108057923252
+    },
+    "perf": {
+      "开场": {
+        "calls": 160,
+        "triangles": 4818,
+        "geometries": 465,
+        "textures": 23
+      },
+      "沈阳": {
+        "calls": 179,
+        "triangles": 10702,
+        "geometries": 465,
+        "textures": 23
+      },
+      "铁路": {
+        "calls": 137,
+        "triangles": 14136,
+        "geometries": 465,
+        "textures": 23
+      },
+      "鞍山": {
+        "calls": 56,
+        "triangles": 6272,
+        "geometries": 465,
+        "textures": 23
+      },
+      "公路": {
+        "calls": 155,
+        "triangles": 12956,
+        "geometries": 465,
+        "textures": 23
+      },
+      "抚顺俯冲": {
+        "calls": 78,
+        "triangles": 10198,
+        "geometries": 465,
+        "textures": 23
+      }
+    }
+  }
+}

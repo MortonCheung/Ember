@@ -1,20 +1,27 @@
 /* ============================================================
-   InteractionManager.js — 可发现区间、Notice、当前展品 Raycast
+   InteractionManager.js — Notice、Raycast 与 Explore 入口
+
+   与旧白盒的差别：可交互的判定不再来自一条全局 progress 区间，
+   而来自 CinematicDirector 给出的 frame.interactive —— 也就是分镜表上写的
+   `interactive: 'lathe'` 与该镜头的 notice 区间。
+   这样「什么时候可以碰机器」是导演决定的，不是算出来的。
+
+   任何一帧 Camera 只能属于一个系统：
+     cinematic / entering-explore / explore / returning
+   Explore 期间本模块不参与，由 OrbitControls 接管。
    ============================================================ */
 
 import * as THREE from 'three';
 import { PointerIntent } from './PointerIntent.js';
 
 export class InteractionManager {
-  constructor({ experience, camera, canvas, exhibits, exhibitData, marker }) {
+  constructor({ experience, camera, canvas, exhibits, marker }) {
     this.experience = experience;
     this.camera = camera;
     this.canvas = canvas;
     this.exhibits = exhibits;
-    this.exhibitData = exhibitData;
     this.marker = marker;
     this.discoverableExhibitId = null;
-    this.exploringExhibitId = null;
     this.activeRangeId = null;
     this.notifiedInVisit = new Set();
     this.suppressedUntilLeave = new Set();
@@ -23,44 +30,35 @@ export class InteractionManager {
     this.pointerIntent = new PointerIntent(canvas, (event) => this.onTap(event));
   }
 
-  update(progress) {
+  /** frame 来自 CinematicDirector；interactive 只在该镜头的 notice 区间内出现。 */
+  update(frame) {
     if (this.experience.state.mode !== 'journey') {
       this.marker.hide();
       return;
     }
 
-    const candidate = this.exhibitData.find(({ activationRange }) => (
-      progress >= activationRange[0] && progress <= activationRange[1]
-    )) ?? null;
-
+    // 上次 Explore 退出后要等离开这个镜头区间，才重新提示。
     for (const id of [...this.suppressedUntilLeave]) {
-      const data = this.exhibitData.find((item) => item.id === id);
-      if (!data || progress < data.activationRange[0] || progress > data.activationRange[1]) {
-        this.suppressedUntilLeave.delete(id);
-      }
+      if (id !== frame.interactive?.id) this.suppressedUntilLeave.delete(id);
     }
 
-    if (!candidate) {
+    const activeId = frame.interactive?.id ?? null;
+    if (!activeId || this.suppressedUntilLeave.has(activeId)) {
       if (this.activeRangeId) this.notifiedInVisit.delete(this.activeRangeId);
       this.activeRangeId = null;
       this.setDiscoverable(null);
       return;
     }
 
-    if (candidate.id !== this.activeRangeId) {
+    if (activeId !== this.activeRangeId) {
       if (this.activeRangeId) this.notifiedInVisit.delete(this.activeRangeId);
-      this.activeRangeId = candidate.id;
+      this.activeRangeId = activeId;
     }
 
-    if (this.suppressedUntilLeave.has(candidate.id)) {
-      this.setDiscoverable(null);
-      return;
-    }
-
-    this.setDiscoverable(candidate.id);
-    if (!this.notifiedInVisit.has(candidate.id)) {
-      this.notifiedInVisit.add(candidate.id);
-      this.exhibits.get(candidate.id)?.playNotice();
+    this.setDiscoverable(activeId);
+    if (!this.notifiedInVisit.has(activeId)) {
+      this.notifiedInVisit.add(activeId);
+      this.exhibits.get(activeId)?.playNotice?.();
     }
     this.marker.update();
   }
@@ -73,8 +71,8 @@ export class InteractionManager {
       this.marker.hide();
       return;
     }
-    const data = this.exhibitData.find((item) => item.id === id);
-    this.marker.show(data);
+    const entry = this.exhibits.get(id);
+    if (entry) this.marker.show(entry);
   }
 
   onTap(event) {
@@ -110,6 +108,6 @@ export class InteractionManager {
   dispose() {
     this.pointerIntent.dispose();
     this.marker.dispose();
-    this.exhibits.forEach((entry) => entry.resetNotice());
+    this.exhibits.forEach((entry) => entry.resetNotice?.());
   }
 }

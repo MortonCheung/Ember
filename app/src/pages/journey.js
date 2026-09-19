@@ -1,6 +1,6 @@
 /* ============================================================
-   journey.js — 《辽迹》连续数字博物馆页面壳
-   页面只负责 DOM 与生命周期；三维运行时全部交给 Experience。
+   journey.js — 《辽迹》电影页面壳
+   页面只负责 DOM 与生命周期；镜头、世界、节奏全部交给 Experience。
    ============================================================ */
 
 import { Experience } from '../museum/journey/Experience.js';
@@ -10,22 +10,25 @@ export function renderJourney(root) {
   page.className = 'page page--journey';
   page.innerHTML = `
     <div class="liaoji-experience" data-mode="journey">
-      <div class="liaoji-canvas-host" aria-label="辽迹连续数字博物馆三维场景"></div>
+      <div class="liaoji-canvas-host" aria-label="辽迹 · 可触碰的辽宁工业记忆"></div>
 
       <div class="liaoji-overlay">
         <section class="liaoji-intro" aria-labelledby="liaoji-title">
-          <p class="liaoji-intro__kicker">辽宁工业数字博物馆</p>
           <h1 id="liaoji-title">辽迹</h1>
           <p class="liaoji-intro__subtitle">可触碰的辽宁工业记忆</p>
-          <span class="liaoji-intro__hint">向下滑动进入</span>
         </section>
 
         <div class="liaoji-chapter" aria-live="polite" aria-atomic="true"></div>
 
+        <p class="liaoji-caption" aria-live="polite" aria-atomic="true"></p>
+
+        <p class="liaoji-hint" aria-live="polite"></p>
+
         <button class="liaoji-exhibit-marker" type="button" hidden>
           <span aria-hidden="true">●</span>
-          <span>探索</span>
         </button>
+
+        <div class="liaoji-console" role="group" aria-label="互动控制台" hidden></div>
 
         <button class="liaoji-continue" type="button" hidden>
           继续参观 <span aria-hidden="true">↓</span>
