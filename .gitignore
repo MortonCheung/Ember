@@ -21,6 +21,9 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+__MACOSX/
+*.orig
+*.bak
 
 # 工具运行产物（截图 / 报告 / 浏览器 profile）
 .workbuddy/

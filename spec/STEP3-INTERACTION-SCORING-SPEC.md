@@ -401,11 +401,11 @@
 **建议文件结构**（不强制命名，但要求"规则"与"页面"分离）：
 
 ```
-src/js/scoring/
+app/src/features/casting/
 ├── casting-data.js   ← §3 的砂箱表 / 铸件表 / §4.2 系数矩阵（纯数据）
 ├── casting.js        ← 评分引擎（纯函数：params → {total, subs, defects, diagnosis, badge}）
 └── turning.js        ← 车削评分引擎（Step 3B）
-src/js/pages/
+app/src/pages/
 ├── cast.js           ← 亲手浇铸（#/cast）
 └── turn.js           ← 协作车削（#/turn）
 ```
@@ -419,16 +419,16 @@ src/js/pages/
 4. **数字格式**：`T` 整数、`H` 一位小数、`V` 一位小数、分数整数；统一用 `Intl.NumberFormat('zh-CN')` 或手写格式化函数，不要在模板字符串里散写 `toFixed`。
 5. **Token 不动**：主按钮 `--c-iron`、面板 `--c-surface`、分数用 `--fs-display` 尺寸阶。橙色仍只用于：主按钮 / 当前选中砂箱 / 关键数值 / 进度条。
 6. **允许改动 / 不允许改动的边界**：
-   - **允许新增**：`src/js/scoring/` 全部、`src/js/pages/cast.js`、`src/js/scene/cast-scene.js`
+   - **允许新增**：`app/src/features/casting/` 全部、`app/src/pages/cast.js`、`app/src/museum/scenes/cast-scene.js`
    - **允许最小改动**：`router.js`（**只新增**两条路由，不改既有行为）、`layout.css`（新增页面样式）、
      导航项「互动体验」的 `href`（`#` → `#/cast`）
-   - **允许受控改动**：`scene/viewport.js` 只为把场景构造函数**参数化**（见第 9 条）；`hall.js` 若需加射线逻辑
-   - **不允许改动**：`tokens.css`、`scene/workshop.js`、`scene/props/*`、`scene/environment.js`、`scene/textures.js`、`scene/merge.js`
+   - **允许受控改动**：`museum/viewport.js` 只为把场景构造函数**参数化**（见第 9 条）；`hall.js` 若需加射线逻辑
+   - **不允许改动**：`tokens.css`、`museum/scenes/workshop.js`、`museum/exhibits/*`、`museum/scenes/environment.js`、`museum/scenes/textures.js`、`museum/scenes/merge.js`
    - **不允许改变**：Step 2 建立的 `userData.sandboxNames` 拾取约定（`sandbox_0…11`）
 7. **`prefers-reduced-motion`**：所有动画（开箱、分数揭示、滑杆过渡）需降级为静态切换。
 8. **无新增运行时依赖**。若确实需要，先问设计方。
 9. **三维视口怎么复用（重要，别自己造一套）**：
-   现状 `scene/viewport.js` 的 `mountViewport(host)` 内部**写死**了 `buildWorkshop()`。
+   现状 `museum/viewport.js` 的 `mountViewport(host)` 内部**写死**了 `buildWorkshop()`。
    `#/cast` 需要自己的场景与机位，但**不要把 viewport.js 复制一份**。最小改法是把它参数化：
 
    ```js
@@ -441,13 +441,13 @@ src/js/pages/
    } = {}) { /* 其余逻辑不动 */ }
    ```
 
-   然后新增 `src/js/scene/cast-scene.js`：浇铸小场景（12 只砂箱 + 浇包 + 冲天炉剪影 + 地面油渍），
-   **直接复用 `scene/props/sandboxes.js` 的 `buildSandboxes()`** —— 它已经是 `InstancedMesh`（3 个 draw call）
+   然后新增 `app/src/museum/scenes/cast-scene.js`：浇铸小场景（12 只砂箱 + 浇包 + 冲天炉剪影 + 地面油渍），
+   **直接复用 `museum/exhibits/sandboxes.js` 的 `buildSandboxes()`** —— 它已经是 `InstancedMesh`（3 个 draw call）
    且带 `userData.sandboxNames[]`，这**正是 Step 2 预留拾取约定的兑现点**，不要另写一套砂箱。
    拾取用 `Raycaster` 命中 → 读 `instanceId` → 查 `userData.sandboxNames[instanceId]`。
    `#/cast` 用 `debugKey: '__cast'`，性能读数走 `__cast.info()`。
 10. **与 Step 2B（车床细节补强）的关系**：两者**文件不重叠**，可分别进行；
-   唯一的交汇点是 `scene/viewport.js`（2B 加剪影钩子、本步加场景参数化）——
+   唯一的交汇点是 `museum/viewport.js`（2B 加剪影钩子、本步加场景参数化）——
    若两轮在同一次会话里做，请把 `viewport.js` 的改动**合并成一次编辑**，不要分两次覆盖。
 
 ---
@@ -474,13 +474,13 @@ src/js/pages/
 
 | 交付物 | 位置 | 说明 |
 |---|---|---|
-| 评分数据表 | `demo/src/js/scoring/casting-data.js` | §3 铸件/砂箱表、§4.2 十二条规则、权重 40/40/20、等级表，纯数据零计算 |
-| 评分引擎 | `demo/src/js/scoring/casting.js` | 纯函数 `score(params, castingKey)`；入口统一 clamp+isFinite；同子项同参数取最大一条；内部 2 位浮点、显示才取整；`selfTest()` 44 项断言 |
-| 浇铸场景 | `demo/src/js/scene/cast-scene.js` | **复用 `buildSandboxes()`**（3 draw calls + `sandboxNames` 约定兑现）+ 浇包（火色呼吸）+ 冲天炉剪影 + 地面（复用车间油渍贴图）+ 开箱动画（上箱抬升、确定性粒子、缺陷铸件贴图三档） |
-| 浇铸页面 | `demo/src/js/pages/cast.js` | 五步状态机、射线拾取（pointermove 悬停 + pointerdown 同源，触屏可用）、注解/徽标实时预览（不产生分数）、评分揭示（600ms，reduced-motion 直显）、E7/E8/E9/E11/E12/E16/E18 |
-| viewport 参数化 | `demo/src/js/scene/viewport.js` | 按 §12.9 五参数（含 `views` 预设表），默认值=原行为；dispose 追加 `built.dispose?.()`。**勘误（2026-09-15 晚）**：本表初版写的「返回值追加 `scene/camera/canvas/controls` 供拾取」当时并未落地——`mountViewport` 实际只返回了 `dispose`，导致 cast 页句柄全空且被可选链静默吞掉（P0 缺陷）；该返回值已于本轮补齐并加 `wired` 断言防回归 |
-| 路由与导航 | `demo/src/js/main.js`、`pages/home.js` | 本项目路由表在 main.js（router.js 是通用实现），新增 `cast` 路由与标题；导航「互动体验」→ `#/cast`；`#/turn` 未加（属 Step 3B） |
-| 页面样式 | `demo/src/styles/layout.css` | 追加 `.cast` 样式块 + `[hidden]` 优先级修复 + `.btn[disabled]` 补充；tokens.css 未动 |
+| 评分数据表 | `app/src/features/casting/data.js` | §3 铸件/砂箱表、§4.2 十二条规则、权重 40/40/20、等级表，纯数据零计算 |
+| 评分引擎 | `app/src/features/casting/scoring.js` | 纯函数 `score(params, castingKey)`；入口统一 clamp+isFinite；同子项同参数取最大一条；内部 2 位浮点、显示才取整；`selfTest()` 44 项断言 |
+| 浇铸场景 | `app/src/museum/scenes/cast-scene.js` | **复用 `buildSandboxes()`**（3 draw calls + `sandboxNames` 约定兑现）+ 浇包（火色呼吸）+ 冲天炉剪影 + 地面（复用车间油渍贴图）+ 开箱动画（上箱抬升、确定性粒子、缺陷铸件贴图三档） |
+| 浇铸页面 | `app/src/pages/cast.js` | 五步状态机、射线拾取（pointermove 悬停 + pointerdown 同源，触屏可用）、注解/徽标实时预览（不产生分数）、评分揭示（600ms，reduced-motion 直显）、E7/E8/E9/E11/E12/E16/E18 |
+| viewport 参数化 | `app/src/museum/viewport.js` | 按 §12.9 五参数（含 `views` 预设表），默认值=原行为；dispose 追加 `built.dispose?.()`。**勘误（2026-09-15 晚）**：本表初版写的「返回值追加 `scene/camera/canvas/controls` 供拾取」当时并未落地——`mountViewport` 实际只返回了 `dispose`，导致 cast 页句柄全空且被可选链静默吞掉（P0 缺陷）；该返回值已于本轮补齐并加 `wired` 断言防回归 |
+| 路由与导航 | `app/src/app/main.js`、`pages/home.js` | 本项目路由表在 main.js（router.js 是通用实现），新增 `cast` 路由与标题；导航「互动体验」→ `#/cast`；`#/turn` 未加（属 Step 3B） |
+| 页面样式 | `app/src/styles/pages/cast.css` | 追加 `.cast` 样式块 + `[hidden]` 优先级修复 + `.btn[disabled]` 补充；tokens.css 未动 |
 
 ### §5 对账结果（T1 命门）
 
@@ -494,7 +494,7 @@ T4 十二条规则逐条构造触发用例全部可触发；T6 等级 91→二�
 ### 偏离与决策（请设计方复核）
 
 1. **E3「越界」的语义**：§10 E3 原文可两种读法。实现取「非有限值（NaN/Infinity）→ 回落默认值；有限但越界 → **钳到量程端点**」，依据是 §12 纪律 3「clamp 与 isFinite 在引擎入口统一做」要求两个操作都有意义。如需「越界也回落默认」，改 `casting.js` 的 `sane()` 一处即可。
-2. **已消耗砂箱的「视觉压暗」**：InstancedMesh 无法逐实例设 opacity，且 `props/sandboxes.js` 冻结不改 → 用逐实例颜色压暗（约 1/3 亮度）+ `cursor: not-allowed`，语义一致。
+2. **已消耗砂箱的「视觉压暗」**：InstancedMesh 无法逐实例设 opacity，且 `museum/exhibits/sandboxes.js` 冻结不改 → 用逐实例颜色压暗（约 1/3 亮度）+ `cursor: not-allowed`，语义一致。
 3. **「存为我的工牌」**：已按 §6.2 写入 localStorage（no 自增 / castScore 取历史最高 / rank / unlocked n/12），但**暂不跳 `#/vault`**——数字工牌页属 Step 4，现路由会回落首页造成困惑；按钮就地反馈「已存 ✓」。
 4. **`__cast.setStep(n)` 调试驱动**：走真实代码路径（真选箱、真评分引擎、真开箱动画）。其中 `setStep(4)` 为同步直落评分——无头验收环境 rAF 几乎不自主跳帧，动画与计数类表现以真机为准。**勘误（2026-09-15 晚）**：初版把"开箱动画未推进"归因于该 rAF 限制，属误判；真实原因是 `sceneRef` 为 null（P0 接线断裂），动画从未启动。修复后有头实测动画 2.0s 正常播放。
 5. **开箱动画计时**：帧差推进、单帧上限 50ms。高帧率真机 = 2.0s 实长；极端掉帧时按帧数推进而非墙钟——**E10（隐藏标签页暂停、回来续播）语义优先于时长精度**。

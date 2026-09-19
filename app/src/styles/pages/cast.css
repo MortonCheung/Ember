@@ -1,0 +1,254 @@
+/* 亲手浇铸（#/cast） */
+.cast [hidden] { display: none !important; }
+.cast {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s3) var(--s8) var(--s6);
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr);
+  gap: var(--s3);
+  align-items: stretch;
+}
+.cast__page-title {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: var(--s2);
+}
+.cast__stage-col { min-width: 0; display: flex; flex-direction: column; gap: var(--s2); }
+.cast__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 420px;
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  overflow: hidden;
+  background: var(--c-bg);
+}
+.cast__viewport { position: absolute; inset: 0; }
+.cast__annos {
+  position: absolute;
+  top: var(--s2); left: var(--s2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  z-index: 5;
+  pointer-events: none;
+}
+.cast__anno {
+  font-size: var(--fs-caption);
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(14, 17, 22, .78);
+  border: 1px solid var(--c-line);
+  color: var(--c-text);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cast__anno--warn { color: var(--c-iron); border-color: color-mix(in srgb, var(--c-iron) 45%, var(--c-line)); }
+.cast__temp {
+  position: absolute;
+  top: var(--s2); right: var(--s2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: rgba(14, 17, 22, .78);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 5;
+}
+.cast__temp-label { font-size: var(--fs-micro); color: var(--c-text-muted); }
+.cast__temp-value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--c-iron);
+}
+.cast__temp-badge { font-size: var(--fs-micro); color: var(--c-text-muted); }
+.cast__temp-badge[data-level="warn"] { color: var(--c-iron); }
+.cast__controls {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  min-height: 84px;
+}
+.cast__slider {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cast__slider-label {
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s1);
+}
+.cast__slider-label b { color: var(--c-text); font-weight: 600; }
+.cast__slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--c-iron);
+  cursor: pointer;
+}
+.cast__slider input[type="range"]:disabled { cursor: not-allowed; opacity: .55; }
+.cast__slider--h input[type="range"] { direction: rtl; }
+.cast__slider-range {
+  font-size: var(--fs-micro);
+  color: var(--c-text-muted);
+}
+.cast__controls .btn { flex: 0 0 auto; }
+.cast__select-info, .cast__wait {
+  flex: 1 1 auto;
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+}
+.cast__panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+}
+.cast__panel-title { font-size: var(--fs-h2); }
+.cast__score {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+}
+.cast__score-num {
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--c-iron);
+}
+.cast__score-unit { font-size: var(--fs-caption); color: var(--c-text-muted); }
+.cast__score-unit b { font-weight: 600; }
+.cast__score-unit b[data-level="ok"] { color: var(--c-text); }
+.cast__score-unit b[data-level="bad"] { color: var(--c-iron); }
+.cast__subs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  border-top: 1px solid var(--c-line);
+  padding-top: var(--s2);
+}
+.cast__sub {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "label value" "track track";
+  gap: 4px var(--s1);
+  font-size: var(--fs-caption);
+}
+.cast__sub-label { grid-area: label; color: var(--c-text-muted); }
+.cast__sub-value { grid-area: value; font-weight: 600; }
+.cast__sub-track {
+  grid-area: track;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--c-surface-2);
+  overflow: hidden;
+}
+.cast__sub-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: var(--c-iron);
+  transition: width .6s cubic-bezier(.22, .8, .36, 1);
+}
+.cast__diagnosis {
+  font-size: var(--fs-caption);
+  line-height: 1.8;
+  color: var(--c-text-muted);
+  border-top: 1px solid var(--c-line);
+  padding-top: var(--s2);
+}
+.cast__scrap { display: block; color: var(--c-iron); font-weight: 600; }
+.cast__grade { font-size: var(--fs-caption); color: var(--c-text); }
+.cast__actions {
+  display: flex;
+  gap: var(--s1);
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.cast__actions .btn { flex: 1 1 auto; }
+.cast__unlock { font-size: var(--fs-micro); color: var(--c-text-muted); }
+.cast__steps {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.cast__step {
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  white-space: nowrap;
+  transition: color .18s ease;
+}
+.cast__step[aria-current] { color: var(--c-iron); font-weight: 600; }
+.cast__step.is-done { color: var(--c-text); }
+
+@media (max-width: 1100px) {
+  .cast {
+  grid-template-columns: 1fr;
+  }
+  .cast__stage {
+  min-height: 340px;
+  }
+}
+
+@media (max-width: 820px) {
+  .cast {
+  padding: var(--s2) var(--s3) var(--s3); gap: var(--s2);
+  }
+  .cast__page-title {
+  display: none;
+  }
+  .cast__steps {
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-left: auto;
+  }
+  .cast__steps::-webkit-scrollbar {
+  display: none;
+  }
+  .cast__step {
+  flex: 0 0 auto;
+  }
+  .cast__controls {
+  flex-wrap: wrap; gap: var(--s2);
+  }
+  .cast__slider {
+  flex-basis: 100%;
+  }
+  .cast__controls .btn {
+  flex: 1 1 100%;
+  }
+  .cast__score-num {
+  font-size: 48px;
+  }
+}
+
+@media (max-width: 400px) {
+  .cast__step {
+  font-size: var(--fs-micro);
+  }
+  .cast__temp-value {
+  font-size: 24px;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "liaoji-museum",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "辽迹 · 可触碰的辽宁工业记忆 —— 运行在浏览器里的辽宁工业数字博物馆",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "three": "^0.160.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

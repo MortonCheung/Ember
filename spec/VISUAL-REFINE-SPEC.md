@@ -13,9 +13,9 @@
 
 | 包 | 对象 | 一句话 | 主文件 |
 |---|---|---|---|
-| **W1** | 地面（三页共用） | 从"随机油渍 + 高频噪点"改为**有结构、低对比、能反光的铸铁地坪** | `scene/textures.js`、`scene/workshop.js`、`scene/environment.js`、`scene/cast-scene.js` |
-| **W2** | 序厅 `#/entrance` | 从"一组平板"改为**有纵深、有内衬、有钢构断面的炉前** | `scene/entrance-scene.js` |
-| **W3** | 浇铸互动 `#/cast` | 重做**浇包**（现在读作"盖着橙色盖子的桶"）、重排**摆位**、补**浇注动画** | `scene/cast-scene.js`、`scene/props/sandboxes.js` |
+| **W1** | 地面（三页共用） | 从"随机油渍 + 高频噪点"改为**有结构、低对比、能反光的铸铁地坪** | `museum/scenes/textures.js`、`museum/scenes/workshop.js`、`museum/scenes/environment.js`、`museum/scenes/cast-scene.js` |
+| **W2** | 序厅 `#/entrance` | 从"一组平板"改为**有纵深、有内衬、有钢构断面的炉前** | `museum/scenes/entrance-scene.js` |
+| **W3** | 浇铸互动 `#/cast` | 重做**浇包**（现在读作"盖着橙色盖子的桶"）、重排**摆位**、补**浇注动画** | `museum/scenes/cast-scene.js`、`museum/exhibits/sandboxes.js` |
 
 **顺序是硬的：W1 → W2 → W3。** 地面是共用模块，先落地再动两个场景，否则场景里调的机位会在 W1 之后再变一次。
 
@@ -38,18 +38,18 @@
 
 | 文件 | 解冻范围 | 原冻结条款 | 为什么必须解冻 |
 |---|---|---|---|
-| `scene/textures.js` | 仅 `makeFloorRoughnessMap` | `STEP3 §12.6`「不允许改动」 | 破烂感的源头就在这里 |
-| `scene/workshop.js` | **仅**地面材质 3 个参数 + 阴影 3 个参数 | 同上 | 地面反射率与阴影嗝纹 |
-| `scene/environment.js` | **仅**地面贴图挂载方式 + 警示线贴图复用 | 同上 | 同上；顺带减贴图数 |
-| `scene/props/sandboxes.js` | **仅边界内的细节追加**（见 Q3.2 的 bbox 硬约束） | `ENTRANCE-HISTORY-SPEC §4`「一行都别动」 | 砂箱是浇铸互动唯一的手上物件 |
-| `scene/entrance-scene.js` | 表现层全量（§2 的坐标不可动） | — | W2 |
-| `scene/cast-scene.js` | 全量重做 | — | W3 |
+| `museum/scenes/textures.js` | 仅 `makeFloorRoughnessMap` | `STEP3 §12.6`「不允许改动」 | 破烂感的源头就在这里 |
+| `museum/scenes/workshop.js` | **仅**地面材质 3 个参数 + 阴影 3 个参数 | 同上 | 地面反射率与阴影嗝纹 |
+| `museum/scenes/environment.js` | **仅**地面贴图挂载方式 + 警示线贴图复用 | 同上 | 同上；顺带减贴图数 |
+| `museum/exhibits/sandboxes.js` | **仅边界内的细节追加**（见 Q3.2 的 bbox 硬约束） | `ENTRANCE-HISTORY-SPEC §4`「一行都别动」 | 砂箱是浇铸互动唯一的手上物件 |
+| `museum/scenes/entrance-scene.js` | 表现层全量（§2 的坐标不可动） | — | W2 |
+| `museum/scenes/cast-scene.js` | 全量重做 | — | W3 |
 
 ### 1.2 本轮**仍然冻结**（不许碰）
 
 | 项 | 判据 |
 |---|---|
-| `props/lathe.js` / `props/toolcart.js` / `props/cupola.js` 任何数值 | `SCENE-LAYOUT-FIX-SPEC §10.10` |
+| `museum/exhibits/lathe.js` / `museum/exhibits/toolcart.js` / `museum/exhibits/cupola.js` 任何数值 | `SCENE-LAYOUT-FIX-SPEC §10.10` |
 | `HALL_VIEWS` 八预设 | 同上 |
 | `layout()` 的任何阈值 | 同上 |
 | `mountViewport` 默认参数 | R3 冻结门禁 |
@@ -527,9 +527,9 @@ const RUNNER_PTS = [
 
 ## §7 交付物
 
-1. **W1**：`scene/textures.js`（`makeFloorRoughnessMap` 重写）、`scene/workshop.js` + `scene/environment.js` + `scene/cast-scene.js`（地面参数与阴影参数）
-2. **W2**：`scene/entrance-scene.js`（Q2.1–Q2.8）
-3. **W3**：`scene/cast-scene.js`（重做）、`scene/props/sandboxes.js`（界内细节）
+1. **W1**：`museum/scenes/textures.js`（`makeFloorRoughnessMap` 重写）、`museum/scenes/workshop.js` + `museum/scenes/environment.js` + `museum/scenes/cast-scene.js`（地面参数与阴影参数）
+2. **W2**：`museum/scenes/entrance-scene.js`（Q2.1–Q2.8）
+3. **W3**：`museum/scenes/cast-scene.js`（重做）、`museum/exhibits/sandboxes.js`（界内细节）
 4. **截图**：每包至少 3 张 —— W1：三页各一张正视地面；W2：`entrance-furnace` / `entrance-runner` / `entrance-default`；W3：`s3-1-select`（新摆位）/ 浇注 3 帧 / `s3-4-open`（铸件冷却前）
 5. **实测读数**：三页各自的 `draw call / 三角面 / 贴图数`，**改前 / 改后对照**
 6. **不回归证据**：铸造馆 `layout()` 61/61、`__cast.selfTest()` 45/45、序厅 E 组 17 条、通史馆 8 节点逐字、首页零回归、gzip

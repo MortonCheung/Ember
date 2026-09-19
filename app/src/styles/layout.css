@@ -1,0 +1,114 @@
+/* 跨页外壳：页面容器 / 顶栏 / 导航 / 按钮 / 遮罩 / 场馆导航 / 全局响应式 */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.wrap {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--s8);
+}
+.topbar {
+  height: var(--topbar-h);
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--c-line);
+  background: color-mix(in srgb, var(--c-bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.topbar__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s6);
+}
+.logo {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+.logo__mark {
+  width: 8px; height: 8px; border-radius: 2px;
+  background: var(--c-iron);
+  flex: 0 0 auto;
+}
+.topbar .logo__mark {
+  width: 20px; height: 20px;
+  border-radius: 6px;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  margin-left: var(--s2);
+}
+.nav__item {
+  font-size: var(--fs-body);
+  color: var(--c-text-muted);
+  transition: color .18s ease;
+}
+.nav__item:hover { color: var(--c-text); }
+.nav__item[aria-current="page"] { color: var(--c-iron); }
+.topbar__spacer { flex: 1 1 auto; }
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-bg);
+  z-index: 15;
+  transition: opacity .35s ease;
+}
+.overlay[hidden] { display: none; }
+.overlay.is-out { opacity: 0; pointer-events: none; }
+.overlay__card {
+  max-width: 420px;
+  padding: var(--s6);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+}
+.overlay__card h2 { font-size: var(--fs-h3); }
+.overlay__card p { font-size: var(--fs-caption); color: var(--c-text-muted); }
+.overlay__card .btn { margin-top: var(--s2); }
+.overlay__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn[disabled] { opacity: .42; cursor: not-allowed; }
+.btn[disabled]:hover { opacity: .42; }
+
+@media (max-width: 1100px) {
+  :root {
+  --fs-display: 46px; --fs-h1: 34px;
+  }
+}
+
+@media (max-width: 820px) {
+  :root {
+  --fs-display: 34px; --fs-h1: 27px; --fs-h2: 22px; --topbar-h: 60px;
+  }
+  .wrap {
+  padding: 0 var(--s3);
+  }
+  .nav {
+  display: none;
+  }
+}

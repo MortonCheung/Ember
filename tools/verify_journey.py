@@ -2,7 +2,7 @@
 """《辽迹》Journey 自动验收（仅 Python 标准库 + 本机 Chrome CDP）。
 
 用法：
-    # 先在 demo/ 运行 npm run build && npm run preview -- --host 127.0.0.1
+    # 先在 app/ 运行 npm run build && npm run preview -- --host 127.0.0.1
     python3 tools/verify_journey.py http://127.0.0.1:4173
     python3 tools/verify_journey.py http://127.0.0.1:4173 --screenshots
 
@@ -298,6 +298,19 @@ def run_legacy_smoke(ws, base_url, check):
         if result["errors"]:
             print(f"  console[legacy {label}]:", json.dumps(result["errors"], ensure_ascii=False))
         check(not result["errors"], f"[legacy] {label} console clean")
+
+        if key == "cast":
+            # 浇铸评分是纯函数引擎，搬目录不应影响它的自检能力。
+            # 注意：__cast.selfTest() 返回的是「全部断言」而非失败列表，
+            # 每项带 pass 字段，末尾还会 concat 一条汇总项。
+            results = evaluate(ws, "(window.__cast && window.__cast.selfTest()) || null")
+            if not isinstance(results, list):
+                check(False, "[legacy] 浇铸评分引擎 selfTest 可调用")
+            else:
+                failed = [item.get("name") for item in results if not item.get("pass")]
+                check(not failed, f"[legacy] 浇铸评分引擎 selfTest 全过（{len(results)} 项断言）")
+                for name in failed[:5]:
+                    print(f"        失败断言：{name}")
 
 
 def main():

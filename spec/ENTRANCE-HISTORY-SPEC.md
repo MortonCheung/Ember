@@ -242,7 +242,7 @@
 > 按钮的落点是 `#/hall`，即**场馆**，所以必须写「馆」。用「厂」会把一个空间导航写成对历史实体的回访，且与导航药丸的命名打架。
 > 另外去掉原拟文案里的语气词「吧」——主按钮要与同一页 HUD 的「进入铸造馆」保持同一种语气，不做口语化收尾。
 
-**实现改动**（`demo/src/js/pages/history.js`）：
+**实现改动**（`app/src/pages/history.js`）：
 
 | 位置 | 动作 |
 |---|---|
@@ -288,7 +288,7 @@
 | 浇铸页 | `__cast.selfTest()` **45/45 不变**；`wired === true` |
 | 首页 | 零回归 |
 | `mountViewport` | **默认参数不得改**。序厅必须通过传参（`buildScene` / `cameraPos` / `target` / `debugKey` / `views`）实现，不得改默认值 |
-| `props/sandboxes.js` | 一行都别动（浇铸页复用） |
+| `museum/exhibits/sandboxes.js` | 一行都别动（浇铸页复用） |
 | 铸造馆几何 | **已冻结（`SCENE-LAYOUT-FIX-SPEC.md` §10.10）**：本轮不得改 `lathe.js` / `toolcart.js` / `cupola.js` 任何数值，不得改 `HALL_VIEWS` |
 | 性能预算 | JS gzip 累计 **≤ 400 KB**（当前 146.49 KB，本页预算 ≤ 20 KB 增量） |
 

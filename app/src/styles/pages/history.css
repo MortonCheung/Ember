@@ -1,0 +1,142 @@
+/* 通史馆长卷（#/history） */
+.history__scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: calc(var(--hud-h) + 60px);   /* 让出 HUD + 药丸行 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-line) transparent;
+}
+.history__inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s4) 120px 96px;
+}
+.history__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s4);
+  border-bottom: 1px solid var(--c-line);   /* 分隔线 1px line 色 */
+  padding-bottom: var(--s4);
+}
+.history__head-main { min-width: 0; }
+.history__eyebrow {
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  color: var(--c-iron);
+  letter-spacing: 2px;
+}
+.history__title {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: var(--s1);
+}
+.history__lead {
+  font-size: var(--fs-body);
+  color: var(--c-text-muted);
+  margin-top: var(--s1);
+}
+.history__meta {
+  flex: 0 0 auto;
+  width: 320px;
+  text-align: right;
+  padding-top: 6px;
+}
+.history__meta-name { font-size: 13px; color: var(--c-text-muted); }
+.history__meta-sub { font-size: 13px; color: var(--c-steel); margin-top: 2px; }
+.timeline {
+  position: relative;
+  list-style: none;
+  padding: 0;
+  margin: 40px 0 0;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 19px;                                /* 脊线 2px 中心对齐节点点圆心 */
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--c-line);
+}
+.timeline__node {
+  position: relative;
+  max-width: 1060px;
+  padding-left: 70px;
+  margin-bottom: 64px;
+}
+.timeline__node:last-child { margin-bottom: 0; }
+.timeline__dot {
+  position: absolute;
+  left: 15px;                                /* 10×10 圆，圆心落在脊线上 */
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c-steel);
+}
+.timeline__node--key .timeline__dot { background: var(--c-iron); box-shadow: 0 0 8px var(--c-iron); }
+.timeline__year {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--c-steel);
+}
+.timeline__node--key .timeline__year { color: var(--c-iron); }
+.timeline__title {
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  margin-top: 4px;
+}
+.timeline__body {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--c-text-muted);
+  margin-top: 6px;
+}
+.timeline__cta { margin-top: var(--s2); }
+.scrollrail {
+  position: absolute;
+  top: 50%;
+  right: clamp(16px, 7.2vw, 104px);          /* 1440 下 = 104px（x=1336） */
+  transform: translateY(-50%);
+  height: 40vh;
+  width: 2px;
+  background: var(--c-line);
+  z-index: 8;
+}
+.scrollrail__indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 64px;
+  background: var(--c-iron);
+  will-change: transform;
+}
+
+@media (max-width: 768px) {
+  .history__inner {
+  padding: var(--s3) 24px 72px;
+  }
+  .history__head {
+  flex-direction: column; gap: var(--s2);
+  }
+  .history__meta {
+  width: auto; text-align: left;
+  }
+  .timeline::before {
+  left: 4px;
+  }
+  .timeline__dot {
+  left: 0;
+  }
+  .timeline__node {
+  padding-left: 32px; margin-bottom: 48px;
+  }
+  .scrollrail {
+  display: none;
+  }
+}

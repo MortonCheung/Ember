@@ -32,7 +32,7 @@
 
 ## §1 房间既有（**不可动**）
 
-引自 `demo/src/js/scene/entrance-scene.js` 现有实现。**本轮只改表现，不改尺寸。**
+引自 `app/src/museum/scenes/entrance-scene.js` 现有实现。**本轮只改表现，不改尺寸。**
 
 | 物件 | 现有定义 | 本轮 |
 |---|---|---|
@@ -316,8 +316,8 @@ update(t) {
 
 ## §9 交付物
 
-1. `demo/src/js/scene/entrance-scene.js` 重写：删雕塑段，新增 §2 全部物件；`entranceLayout()` 返回 E1a…E6 + R 组 checks（每条 `threshold` 必须能回答"依据是什么"—— 判据自指禁令，§10.9.1 永久规则之一）。
+1. `app/src/museum/scenes/entrance-scene.js` 重写：删雕塑段，新增 §2 全部物件；`entranceLayout()` 返回 E1a…E6 + R 组 checks（每条 `threshold` 必须能回答"依据是什么"—— 判据自指禁令，§10.9.1 永久规则之一）。
 2. `entranceSilhouette()` 语义改为"只留炉壁 + 炉口亮面"（E1″ 盲测用的隔离视图：炉壁纯黑、开口纯白、其余隐藏）。
-3. `demo/src/js/pages/entrance.js`：删 `envMapIntensity = 4.5` 覆写；`views` 换成 §5 六预设。
+3. `app/src/pages/entrance.js`：删 `envMapIntensity = 4.5` 覆写；`views` 换成 §5 六预设。
 4. 交付自述：`spec/IMPLEMENTATION-STEP4C-REPORT.md`，**必须含 E1″ 三句原话 + E5 四区实测数**。
 5. 设计侧不需要再改：本文件 + `design/S10-序厅炉前基准.png` 即定稿。
