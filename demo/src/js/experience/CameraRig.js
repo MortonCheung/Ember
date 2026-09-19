@@ -3,6 +3,7 @@
    ============================================================ */
 
 import * as THREE from 'three';
+import { gsap } from 'gsap';
 import { CAMERA_POINTS, EXHIBITS } from './data/journey-data.js';
 
 const smoothstep = (value) => value * value * (3 - 2 * value);
@@ -20,6 +21,7 @@ export class CameraRig {
     this.position = new THREE.Vector3();
     this.forwardTarget = new THREE.Vector3();
     this.focusTarget = new THREE.Vector3();
+    this.poseTween = null;
   }
 
   getJourneyPose(pathT, progress) {
@@ -75,5 +77,51 @@ export class CameraRig {
     this.camera.lookAt(pose.target);
   }
 
-  dispose() {}
+  animateToPose(pose, { duration = .8, ease = 'power3.inOut' } = {}) {
+    this.poseTween?.kill();
+    const values = {
+      x: this.camera.position.x,
+      y: this.camera.position.y,
+      z: this.camera.position.z,
+      tx: this.controls.target.x,
+      ty: this.controls.target.y,
+      tz: this.controls.target.z,
+    };
+    return new Promise((resolve) => {
+      this.poseTween = gsap.to(values, {
+        x: pose.position.x,
+        y: pose.position.y,
+        z: pose.position.z,
+        tx: pose.target.x,
+        ty: pose.target.y,
+        tz: pose.target.z,
+        duration,
+        ease,
+        overwrite: true,
+        onUpdate: () => {
+          this.camera.position.set(values.x, values.y, values.z);
+          this.controls.target.set(values.tx, values.ty, values.tz);
+          this.camera.lookAt(this.controls.target);
+        },
+        onComplete: () => {
+          this.poseTween = null;
+          this.restoreJourneyPose(pose);
+          resolve(true);
+        },
+        onInterrupt: () => {
+          this.poseTween = null;
+          resolve(false);
+        },
+      });
+    });
+  }
+
+  stopAnimation() {
+    this.poseTween?.kill();
+    this.poseTween = null;
+  }
+
+  dispose() {
+    this.stopAnimation();
+  }
 }

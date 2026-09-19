@@ -12,6 +12,7 @@ import { buildWhiteboxMuseum } from './world/buildWhiteboxMuseum.js';
 import { JourneyOverlay } from './ui/JourneyOverlay.js';
 import { ExhibitMarker } from './ui/ExhibitMarker.js';
 import { InteractionManager } from './InteractionManager.js';
+import { ScrollLock } from './ScrollLock.js';
 import { EXHIBITS, JOURNEY_SEGMENTS } from './data/journey-data.js';
 
 export class Experience {
@@ -32,6 +33,9 @@ export class Experience {
       chapter: null,
       discoverableExhibitId: null,
       exploringExhibitId: null,
+      savedProgress: null,
+      savedScrollY: null,
+      savedJourneyPose: null,
     };
 
     const capability = detectWebGL();
@@ -67,6 +71,9 @@ export class Experience {
     this.controls.enabled = false;
     this.controls.enablePan = false;
     this.controls.enableDamping = true;
+    this.controls.dampingFactor = .07;
+    this.controls.rotateSpeed = .55;
+    this.controls.zoomSpeed = .75;
     this.controls.target.set(0, 1.65, 30);
     this.controls.update();
 
@@ -93,6 +100,14 @@ export class Experience {
       exhibitData: EXHIBITS,
       marker: this.exhibitMarker,
     });
+    this.scrollLock = new ScrollLock();
+    this.continueButton = this.overlay.querySelector('.liaoji-continue');
+    this.onContinue = () => this.exitExplore();
+    this.onKeyDown = (event) => {
+      if (event.key === 'Escape' && this.state.mode === 'explore') this.exitExplore();
+    };
+    this.continueButton.addEventListener('click', this.onContinue);
+    window.addEventListener('keydown', this.onKeyDown);
     this.cameraRig.applyJourneyPose(0, 0);
 
     this.resize = this.resize.bind(this);
@@ -123,15 +138,99 @@ export class Experience {
   }
 
   update(time, dt) {
-    const progress = this.journeyController.update(dt);
+    const progress = this.state.mode === 'journey'
+      ? this.journeyController.update(dt)
+      : this.journeyController.visualProgress;
     const pathT = this.journeyMap.toPathT(progress);
-    this.cameraRig.applyJourneyPose(pathT, progress);
+    if (this.state.mode === 'journey') this.cameraRig.applyJourneyPose(pathT, progress);
+    if (this.state.mode === 'explore') this.controls.update();
     this.world.update(time, progress);
     this.interactionManager.update(progress);
     this.state.rawProgress = this.journeyController.rawProgress;
     this.state.visualProgress = progress;
     this.state.pathT = pathT;
     this.state.chapter = this.journeyOverlay.update(progress);
+  }
+
+  setMode(mode) {
+    this.state.mode = mode;
+    this.root.dataset.mode = mode;
+    this.continueButton.hidden = mode !== 'explore';
+  }
+
+  getExplorePose(data) {
+    const target = new THREE.Vector3(...data.explorePose.target);
+    const position = new THREE.Vector3(...data.explorePose.position);
+    if (this.host.clientWidth < this.host.clientHeight) {
+      position.sub(target).multiplyScalar(1.16).add(target);
+      position.y += .35;
+    }
+    return { position, target };
+  }
+
+  async enterExplore(id) {
+    if (!this.available || this.state.mode !== 'journey') return false;
+    const entry = this.world.exhibits.get(id);
+    if (!entry) return false;
+
+    const data = entry.data;
+    this.state.savedScrollY = window.scrollY;
+    this.state.savedProgress = this.journeyController.rawProgress;
+    this.state.savedJourneyPose = this.cameraRig.getCurrentPose();
+    this.state.exploringExhibitId = id;
+    this.setMode('entering-explore');
+    this.journeyController.enabled = false;
+    this.controls.enabled = false;
+    this.interactionManager.setDiscoverable(null);
+    this.scrollLock.lock();
+
+    const completed = await this.cameraRig.animateToPose(this.getExplorePose(data), {
+      duration: this.reducedMotion ? .12 : .82,
+    });
+    if (!completed || this.state.mode !== 'entering-explore') return false;
+
+    this.controls.target.set(...data.explorePose.target);
+    this.controls.minDistance = data.explorePose.minDistance;
+    this.controls.maxDistance = data.explorePose.maxDistance;
+    this.controls.minPolarAngle = data.explorePose.minPolarAngle;
+    this.controls.maxPolarAngle = data.explorePose.maxPolarAngle;
+    this.controls.enablePan = false;
+    this.controls.enabled = true;
+    this.controls.update();
+    this.setMode('explore');
+    return true;
+  }
+
+  async exitExplore() {
+    if (!this.available || this.state.mode !== 'explore') return false;
+    const id = this.state.exploringExhibitId;
+    const savedScrollY = this.state.savedScrollY;
+    const savedProgress = this.state.savedProgress;
+    const savedPose = this.state.savedJourneyPose;
+    this.setMode('returning');
+    this.controls.enabled = false;
+
+    const completed = await this.cameraRig.animateToPose(savedPose, {
+      duration: this.reducedMotion ? .12 : .78,
+    });
+    if (!completed || this.state.mode !== 'returning') return false;
+
+    this.scrollLock.unlock(savedScrollY);
+    this.journeyController.rawProgress = savedProgress;
+    this.journeyController.visualProgress = savedProgress;
+    this.journeyController.syncFromScroll(false);
+    this.journeyController.visualProgress = this.journeyController.rawProgress;
+    const restoredProgress = this.journeyController.visualProgress;
+    const restoredPathT = this.journeyMap.toPathT(restoredProgress);
+    this.cameraRig.applyJourneyPose(restoredPathT, restoredProgress);
+    this.journeyController.enabled = true;
+    this.state.exploringExhibitId = null;
+    this.state.rawProgress = this.journeyController.rawProgress;
+    this.state.visualProgress = restoredProgress;
+    this.state.pathT = restoredPathT;
+    this.setMode('journey');
+    this.interactionManager.suppressUntilExitRange(id);
+    return true;
   }
 
   resize() {
@@ -174,6 +273,10 @@ export class Experience {
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.resizeObserver?.disconnect();
     this.controls?.dispose();
+    this.cameraRig?.stopAnimation();
+    this.scrollLock?.forceUnlock();
+    this.continueButton?.removeEventListener('click', this.onContinue);
+    window.removeEventListener('keydown', this.onKeyDown);
     this.interactionManager?.dispose();
     this.journeyController?.dispose();
     this.journeyOverlay?.dispose();
