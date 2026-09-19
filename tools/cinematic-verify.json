@@ -109,10 +109,28 @@
       "detail": "coverage=0.496"
     },
     {
+      "group": "取景",
+      "name": "C620-1 在走近途中已进入视野（§12）",
+      "ok": true,
+      "detail": "[{\"shot\": \"SY_03_WALLTEXT\", \"t\": 0.55, \"inside\": true, \"coverage\": 0.010917520133033636}, {\"shot\": \"SY_03_WALLTEXT\", \"t\": 0.95, \"inside\": true, \"coverage\": 0.0182809120098017}, {\"shot\": \"SY_04_REVEAL\", \"t\": 0.5, \"inside\": true, \"coverage\": "
+    },
+    {
+      "group": "转场",
+      "name": "TR_04 矿石在切点前填满画面（宽或高 ≥ 0.95）",
+      "ok": true,
+      "detail": "{\"coverage\": 0.8810847356222581, \"widthCoverage\": 0.8810847356222581, \"heightCoverage\": 1}"
+    },
+    {
+      "group": "转场",
+      "name": "AS_07E 钢板在切点前填满画面（宽或高 ≥ 0.95）",
+      "ok": true,
+      "detail": "{\"coverage\": 1, \"widthCoverage\": 1, \"heightCoverage\": 1}"
+    },
+    {
       "group": "性能",
       "name": "单镜头 draw call < 420",
       "ok": true,
-      "detail": "worst=178"
+      "detail": "worst=198"
     },
     {
       "group": "旧路由",
@@ -133,6 +151,12 @@
       "detail": "fov=32"
     },
     {
+      "group": "视口 desktop-1440x900",
+      "name": "draw call < 420",
+      "ok": true,
+      "detail": "calls=176"
+    },
+    {
       "group": "视口 desktop-1280x720",
       "name": "无横向滚动",
       "ok": true,
@@ -145,6 +169,12 @@
       "detail": "fov=32"
     },
     {
+      "group": "视口 desktop-1280x720",
+      "name": "draw call < 420",
+      "ok": true,
+      "detail": "calls=177"
+    },
+    {
       "group": "视口 portrait-390x844",
       "name": "无横向滚动",
       "ok": true,
@@ -155,6 +185,12 @@
       "name": "FOV 有竖屏补偿",
       "ok": true,
       "detail": "fov=39.68"
+    },
+    {
+      "group": "视口 portrait-390x844",
+      "name": "draw call < 420",
+      "ok": true,
+      "detail": "calls=76"
     },
     {
       "group": "结构",
@@ -197,42 +233,74 @@
       "pitchDeg": 37.18921095568353,
       "heightCoverage": 0.4960108057923252
     },
+    "revealEarly": [
+      {
+        "shot": "SY_03_WALLTEXT",
+        "t": 0.55,
+        "inside": true,
+        "coverage": 0.010917520133033636
+      },
+      {
+        "shot": "SY_03_WALLTEXT",
+        "t": 0.95,
+        "inside": true,
+        "coverage": 0.0182809120098017
+      },
+      {
+        "shot": "SY_04_REVEAL",
+        "t": 0.5,
+        "inside": true,
+        "coverage": 0.053676153433487694
+      }
+    ],
+    "occlusion": {
+      "TR_04 矿石": {
+        "coverage": 0.8810847356222581,
+        "widthCoverage": 0.8810847356222581,
+        "heightCoverage": 1
+      },
+      "AS_07E 钢板": {
+        "coverage": 1,
+        "widthCoverage": 1,
+        "heightCoverage": 1
+      }
+    },
     "perf": {
       "开场": {
-        "calls": 159,
-        "triangles": 4788,
-        "geometries": 473,
-        "textures": 24
+        "calls": 176,
+        "triangles": 7622,
+        "geometries": 487,
+        "textures": 38
       },
       "沈阳": {
-        "calls": 178,
-        "triangles": 10690,
-        "geometries": 473,
-        "textures": 24
+        "calls": 198,
+        "triangles": 13540,
+        "geometries": 487,
+        "textures": 38
       },
       "铁路": {
-        "calls": 145,
-        "triangles": 17208,
-        "geometries": 473,
-        "textures": 24
+        "calls": 151,
+        "triangles": 17216,
+        "geometries": 487,
+        "textures": 38
       },
       "鞍山": {
-        "calls": 64,
-        "triangles": 9344,
-        "geometries": 473,
-        "textures": 24
+        "calls": 67,
+        "triangles": 9346,
+        "geometries": 487,
+        "textures": 38
       },
       "公路": {
-        "calls": 155,
-        "triangles": 12956,
-        "geometries": 473,
-        "textures": 24
+        "calls": 161,
+        "triangles": 12962,
+        "geometries": 487,
+        "textures": 38
       },
       "抚顺俯冲": {
-        "calls": 78,
-        "triangles": 10198,
-        "geometries": 473,
-        "textures": 24
+        "calls": 81,
+        "triangles": 10200,
+        "geometries": 487,
+        "textures": 38
       }
     }
   }

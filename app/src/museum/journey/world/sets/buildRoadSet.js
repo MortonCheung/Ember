@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { WorldBuilder, createWorker } from '../primitives.js';
 import { SHOT_RANGES } from '../../storyboard.js';
-import { createWallText } from '../textPlates.js';
+import { createWallText, createNameplate } from '../textPlates.js';
 
 const lerp = THREE.MathUtils.lerp;
 const smooth = THREE.MathUtils.smoothstep;
@@ -215,6 +215,24 @@ export function buildRoadSet({ reducedMotion = false } = {}) {
     width: 6, height: 1.2, fontSize: 84, tracking: 12,
   });
 
+  // 里程碑：公路段的行进信息
+  createNameplate(b, {
+    name: 'rd_plate_milestone', title: '鞍山 12',
+    lines: ['抚顺 38'],
+    position: [ROAD_X - 7.8, 1.3, -900], rotation: [0, 0, 0],
+    width: 1.5, height: 0.85,
+  });
+  /* ---------------- 持续的小运动：路面扬尘 ----------------
+     卡车一路带起的土，是这段「行进即内容」最直观的呼吸感。 */
+  parts.roadDust = b.points('rd_dust', 110, { color: 0xb4ab97, size: 0.42, opacity: 0.3 });
+  parts.roadDustSeed = Array.from({ length: 110 }, () => ({
+    x: ROAD_X + (Math.random() - 0.5) * 9,
+    y: 0.1 + Math.random() * 2.6,
+    z: -704 - Math.random() * 380,
+    vy: 0.25 + Math.random() * 0.5,
+    vx: (Math.random() - 0.5) * 0.5,
+  }));
+
   /* ---------------- 灯光 ---------------- */
   const roadKey = new THREE.PointLight(0xd6d2c4, 1.4, 120, 1.3);
   roadKey.position.set(ROAD_X + 6, 14, -820);
@@ -236,6 +254,18 @@ export function buildRoadSet({ reducedMotion = false } = {}) {
 
     state.spin += dt * 9 * (shot.id === 'RD_03_REVEAL' ? 0.35 : 1);
     parts.truck.setWheelSpin(state.spin);
+
+    /* 扬尘：贴着路面缓慢上升，被风横向带开。 */
+    {
+      const array = parts.roadDust.geometry.getAttribute('position');
+      parts.roadDustSeed.forEach((seed, i) => {
+        seed.y += seed.vy * dt;
+        seed.x += seed.vx * dt;
+        if (seed.y > 3.4) { seed.y = 0.1; seed.x = ROAD_X + (Math.random() - 0.5) * 9; }
+        array.setXYZ(i, seed.x, seed.y, seed.z);
+      });
+      array.needsUpdate = true;
+    }
 
     // 工人小幅动作
     parts.workers.forEach((worker, index) => {

@@ -40,7 +40,7 @@
       "group": "Pass A",
       "name": "全程 draw call < 420",
       "ok": true,
-      "detail": "worst=215"
+      "detail": "worst=213"
     },
     {
       "group": "Pass B",
@@ -94,7 +94,7 @@
       "group": "Pass B",
       "name": "工作台：图纸可展开",
       "ok": true,
-      "detail": "drawing=0.999995"
+      "detail": "drawing=1"
     },
     {
       "group": "Pass B",
@@ -174,43 +174,43 @@
         "ratio": 0.025,
         "shot": "OP_03_SPINDLE",
         "chapter": "opening",
-        "localT": 0.378,
-        "progress": 0.0245
+        "localT": 0.316,
+        "progress": 0.0239
       },
       {
         "ratio": 0.05,
         "shot": "OP_05_IRON",
         "chapter": "opening",
-        "localT": 0.918,
-        "progress": 0.0493
+        "localT": 0.881,
+        "progress": 0.0488
       },
       {
         "ratio": 0.075,
         "shot": "OP_08_TITLE",
         "chapter": "opening",
-        "localT": 0.723,
-        "progress": 0.0745
+        "localT": 0.625,
+        "progress": 0.0735
       },
       {
         "ratio": 0.1,
         "shot": "SY_01_ENTER",
         "chapter": "shenyang",
-        "localT": 0.256,
-        "progress": 0.0995
+        "localT": 0.235,
+        "progress": 0.0988
       },
       {
         "ratio": 0.125,
-        "shot": "SY_01_ENTER",
+        "shot": "SY_02_ALIVE",
         "chapter": "shenyang",
-        "localT": 0.997,
-        "progress": 0.1233
+        "localT": 0.029,
+        "progress": 0.1245
       },
       {
         "ratio": 0.15,
         "shot": "SY_02_ALIVE",
         "chapter": "shenyang",
-        "localT": 0.708,
-        "progress": 0.149
+        "localT": 0.705,
+        "progress": 0.1489
       },
       {
         "ratio": 0.175,
@@ -223,15 +223,15 @@
         "ratio": 0.2,
         "shot": "SY_04_REVEAL",
         "chapter": "shenyang",
-        "localT": 0.277,
-        "progress": 0.1985
+        "localT": 0.301,
+        "progress": 0.1993
       },
       {
         "ratio": 0.225,
         "shot": "SY_05_NOTICE",
         "chapter": "shenyang",
-        "localT": 0.104,
-        "progress": 0.224
+        "localT": 0.082,
+        "progress": 0.2235
       },
       {
         "ratio": 0.25,
@@ -244,155 +244,155 @@
         "ratio": 0.275,
         "shot": "SY_06_WALK",
         "chapter": "shenyang",
-        "localT": 0.589,
+        "localT": 0.588,
         "progress": 0.2733
       },
       {
         "ratio": 0.3,
         "shot": "SY_07_BENCH",
         "chapter": "shenyang",
-        "localT": 0.132,
-        "progress": 0.2984
+        "localT": 0.163,
+        "progress": 0.2995
       },
       {
         "ratio": 0.325,
         "shot": "SY_07_BENCH",
         "chapter": "shenyang",
-        "localT": 0.866,
-        "progress": 0.3235
+        "localT": 0.897,
+        "progress": 0.3245
       },
       {
         "ratio": 0.35,
         "shot": "SY_08_EXIT",
         "chapter": "shenyang",
-        "localT": 0.509,
-        "progress": 0.3495
+        "localT": 0.503,
+        "progress": 0.3493
       },
       {
         "ratio": 0.375,
         "shot": "TR_01_TRACK",
         "chapter": "rail",
-        "localT": 0.205,
-        "progress": 0.3743
+        "localT": 0.217,
+        "progress": 0.3745
       },
       {
         "ratio": 0.4,
         "shot": "TR_02_TRAIN",
         "chapter": "rail",
-        "localT": 0.382,
-        "progress": 0.3994
+        "localT": 0.334,
+        "progress": 0.3983
       },
       {
         "ratio": 0.425,
         "shot": "TR_03_MOTION",
         "chapter": "rail",
-        "localT": 0.31,
-        "progress": 0.4243
+        "localT": 0.284,
+        "progress": 0.4235
       },
       {
         "ratio": 0.45,
         "shot": "TR_04_ORE",
         "chapter": "rail",
-        "localT": 0.128,
+        "localT": 0.127,
         "progress": 0.4495
       },
       {
         "ratio": 0.475,
         "shot": "AS_01_SCALE",
         "chapter": "anshan",
-        "localT": 0.166,
-        "progress": 0.4748
+        "localT": 0.145,
+        "progress": 0.4743
       },
       {
         "ratio": 0.5,
         "shot": "AS_02_CHARGE",
         "chapter": "anshan",
-        "localT": 0.055,
-        "progress": 0.498
+        "localT": 0.109,
+        "progress": 0.4994
       },
       {
         "ratio": 0.525,
         "shot": "AS_03_INNER",
         "chapter": "anshan",
-        "localT": 0.044,
-        "progress": 0.524
+        "localT": 0.028,
+        "progress": 0.5235
       },
       {
         "ratio": 0.55,
         "shot": "AS_03_INNER",
         "chapter": "anshan",
-        "localT": 0.879,
-        "progress": 0.5491
+        "localT": 0.889,
+        "progress": 0.5494
       },
       {
         "ratio": 0.575,
         "shot": "AS_04_REDUCE",
         "chapter": "anshan",
-        "localT": 0.711,
-        "progress": 0.5742
+        "localT": 0.715,
+        "progress": 0.5743
       },
       {
         "ratio": 0.6,
         "shot": "AS_05_MELT",
         "chapter": "anshan",
-        "localT": 0.691,
-        "progress": 0.5995
+        "localT": 0.649,
+        "progress": 0.5985
       },
       {
         "ratio": 0.625,
         "shot": "AS_06_TAP",
         "chapter": "anshan",
-        "localT": 0.59,
+        "localT": 0.588,
         "progress": 0.6235
       },
       {
         "ratio": 0.65,
-        "shot": "AS_07C_BILLET",
+        "shot": "AS_07B_SPARK",
         "chapter": "anshan",
-        "localT": 0.159,
-        "progress": 0.6496
+        "localT": 0.994,
+        "progress": 0.6484
       },
       {
         "ratio": 0.675,
         "shot": "AS_08_TRUCK",
         "chapter": "anshan",
-        "localT": 0.046,
-        "progress": 0.6735
+        "localT": 0.056,
+        "progress": 0.6739
       },
       {
         "ratio": 0.7,
         "shot": "AS_08_TRUCK",
         "chapter": "anshan",
-        "localT": 0.9,
-        "progress": 0.6992
+        "localT": 0.896,
+        "progress": 0.6991
       },
       {
         "ratio": 0.725,
         "shot": "RD_01_DEPART",
         "chapter": "road",
-        "localT": 0.83,
-        "progress": 0.7239
+        "localT": 0.845,
+        "progress": 0.7243
       },
       {
         "ratio": 0.75,
         "shot": "RD_02_TRANSIT",
         "chapter": "road",
         "localT": 0.616,
-        "progress": 0.7493
+        "progress": 0.7494
       },
       {
         "ratio": 0.775,
         "shot": "RD_03_REVEAL",
         "chapter": "road",
-        "localT": 0.36,
-        "progress": 0.7733
+        "localT": 0.386,
+        "progress": 0.774
       },
       {
         "ratio": 0.8,
         "shot": "FS_01_RIM",
         "chapter": "fushun",
-        "localT": 0.289,
-        "progress": 0.7995
+        "localT": 0.269,
+        "progress": 0.799
       },
       {
         "ratio": 0.825,
@@ -419,15 +419,15 @@
         "ratio": 0.9,
         "shot": "FS_05_LAND",
         "chapter": "fushun",
-        "localT": 0.312,
-        "progress": 0.899
+        "localT": 0.322,
+        "progress": 0.8992
       },
       {
         "ratio": 0.925,
         "shot": "FS_06_GAZE",
         "chapter": "fushun",
-        "localT": 0.203,
-        "progress": 0.9243
+        "localT": 0.2,
+        "progress": 0.9242
       },
       {
         "ratio": 0.95,
@@ -447,11 +447,11 @@
         "ratio": 1.0,
         "shot": "EN_03_TITLE",
         "chapter": "ending",
-        "localT": 0.98,
-        "progress": 0.9996
+        "localT": 0.937,
+        "progress": 0.9989
       }
     ],
-    "worstCalls": 215,
+    "worstCalls": 213,
     "latheRun": {
       "entered": true,
       "mode": "explore",
@@ -470,12 +470,12 @@
         "explode": 0,
         "running": 0,
         "feed": 0,
-        "spin": 8.95328305059624
+        "spin": 11.324794361412494
       }
     },
     "benchRun": {
       "entered": true,
-      "drawing": 0.999995,
+      "drawing": 1,
       "caliper": 1,
       "afterMode": "journey",
       "benchReset": {

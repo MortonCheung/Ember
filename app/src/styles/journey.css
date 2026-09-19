@@ -237,18 +237,19 @@
 
 /* ------------------------------------------------------------------
    互动控制台：只在 Explore 出现。
-   刻意不做「左侧卡片 + 右侧 3D」的网页版式。
+   刻意不做「左侧卡片 + 右侧 3D」的网页版式（§34）。
+   它更接近车间里立在设备旁边的一块操作牌：一条竖线、几行字，
+   没有背景、没有外框、没有模糊层 —— 画面始终是主角。
    ------------------------------------------------------------------ */
 .liaoji-console {
   position: absolute;
   left: clamp(20px, 4vw, 64px);
   bottom: clamp(24px, 6vh, 72px);
-  width: min(370px, calc(100vw - 40px));
-  padding: 18px 20px 20px;
-  border: 1px solid rgba(242, 238, 230, .2);
-  background: rgba(14, 17, 22, .84);
-  backdrop-filter: blur(12px);
+  width: min(336px, calc(100vw - 40px));
+  padding-left: 18px;
+  border-left: 1px solid rgba(232, 102, 60, .55);
   pointer-events: auto;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, .82);
 }
 
 .liaoji-console[hidden] {
@@ -259,8 +260,8 @@
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(242, 238, 230, .16);
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(242, 238, 230, .13);
 }
 
 .liaoji-console__step {
@@ -294,18 +295,27 @@
 
 .liaoji-console__parts button,
 .liaoji-console__actions button {
-  padding: 7px 12px;
-  border: 1px solid rgba(242, 238, 230, .32);
+  padding: 4px 0 5px;
+  border: 0;
+  border-bottom: 1px solid rgba(242, 238, 230, .4);
   color: var(--liaoji-ink);
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: .08em;
   background: transparent;
+  transition: border-color .18s ease, color .18s ease;
+}
+
+.liaoji-console__parts button:hover,
+.liaoji-console__actions button:hover,
+.liaoji-console__parts button:focus-visible,
+.liaoji-console__actions button:focus-visible {
+  border-bottom-color: var(--liaoji-ink);
 }
 
 .liaoji-console__parts button.is-active,
 .liaoji-console__actions button.is-active {
-  border-color: var(--liaoji-accent);
-  background: rgba(232, 102, 60, .16);
+  border-bottom-color: var(--liaoji-accent);
+  color: var(--liaoji-accent);
 }
 
 .liaoji-console__actions {
@@ -345,9 +355,8 @@
 .liaoji-console__archive {
   display: grid;
   gap: 6px;
-  padding: 14px 16px;
-  border-left: 2px solid var(--liaoji-accent);
-  background: rgba(242, 238, 230, .06);
+  padding: 2px 0 2px 16px;
+  border-left: 1px solid var(--liaoji-accent);
 }
 
 .liaoji-console__archive strong {

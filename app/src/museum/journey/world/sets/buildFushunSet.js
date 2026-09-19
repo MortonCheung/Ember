@@ -240,6 +240,33 @@ export function buildFushunSet({ reducedMotion = false } = {}) {
     rotation: [0, -2.3, 0], width: 1.7, height: 0.95,
   });
 
+  // 矿区标识
+  createNameplate(b, {
+    name: 'fs_plate_area', title: '露天矿 · 作业区',
+    lines: ['无关人员禁止入内'],
+    position: [-6.5, 3.4, -1236], rotation: [0, 0.28, 0],
+    width: 2.1, height: 1.0,
+  });
+  createWallText(b, {
+    name: 'fs_text_step', text: '+3 台阶',
+    position: pit(76, -50.0, 80), rotation: [0, -1.35, 0],
+    width: 1.6, height: 0.7, fontSize: 96, tracking: 4, opacity: 0.7,
+  });
+  /* ---------------- 持续的小运动：坑内风沙 ----------------
+     露天矿是有风的：空气里的浮尘让「深」多了一层空气感。 */
+  parts.pitHaze = b.points('fs_haze', 160, { color: 0xc9c3b6, size: 0.6, opacity: 0.22 });
+  parts.pitHazeSeed = Array.from({ length: 160 }, () => {
+    const radius = 30 + Math.random() * 120;
+    const theta = Math.random() * Math.PI * 2;
+    return {
+      x: Math.cos(theta) * radius,
+      z: CZ + Math.sin(theta) * radius,
+      y: -112 + Math.random() * 108,
+      vx: 0.6 + Math.random() * 1.2,
+      vy: (Math.random() - 0.5) * 0.25,
+    };
+  });
+
   /* ---------------- 灯光 ---------------- */
   parts.skyKey = new THREE.PointLight(0xdfe6ea, 2.0, 260, 1.1);
   parts.skyKey.position.set(CX, 40, CZ + 210);
@@ -293,6 +320,20 @@ export function buildFushunSet({ reducedMotion = false } = {}) {
         if (child.name.endsWith('_head')) child.rotation.x = lerp(-0.42, -0.62, gaze);
         if (child.name.endsWith('_cap')) child.rotation.x = lerp(-0.5, -0.72, gaze);
       });
+    }
+
+    /* 风沙：横向掠过坑壁，缓慢上下浮动。 */
+    {
+      const array = parts.pitHaze.geometry.getAttribute('position');
+      parts.pitHazeSeed.forEach((seed, i) => {
+        seed.x += seed.vx * dt;
+        seed.y += seed.vy * dt;
+        if (seed.x > 150) { seed.x = -150; seed.y = -112 + Math.random() * 108; }
+        if (seed.y > 2) seed.y = -112;
+        if (seed.y < -115) seed.y = 2;
+        array.setXYZ(i, seed.x, seed.y, seed.z);
+      });
+      array.needsUpdate = true;
     }
 
     /* 坑壁工人：小幅动作，强调他们真的很小 */

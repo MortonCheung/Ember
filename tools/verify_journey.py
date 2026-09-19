@@ -293,6 +293,12 @@ def main():
         # ---------------- 分镜可定位 + Camera 无 NaN ----------------
         shots = evaluate(ws, mid, "window.__liaoji.listShots()")
         mid += 1
+        if not shots:
+            # 走到这里说明 Experience 没起来（多半是运行时错误），
+            # 后面的断言全部无意义，直接给出可读原因。
+            print("\nFAIL: 页面未就绪 —— __liaoji 不可用，Experience 初始化失败。")
+            print("      先看页面控制台的 '[liaoji] Experience initialization failed' 堆栈。")
+            return 1
         bad_shots = []
         for shot in shots:
             for t in LOCAL_STOPS:
@@ -403,6 +409,43 @@ def main():
             report.check("抚顺", "抚顺构图读数可取", False,
                          json.dumps(comp, ensure_ascii=False)[:200])
 
+        # ---------------- 手册 §12：C620-1 必须提前进入视野 ----------------
+        # 「路线本身逐渐向 C620-1 偏移……用户提前十几米就应该知道前面有一台重要机器。」
+        early = []
+        for shot_id, t in [('SY_03_WALLTEXT', 0.55), ('SY_03_WALLTEXT', 0.95), ('SY_04_REVEAL', 0.5)]:
+            evaluate(ws, mid, f"window.__liaoji.setShot({json.dumps(shot_id)}, {t})")
+            mid += 1
+            frame = evaluate(ws, mid, "window.__liaoji.nodeFrame('hero_lathe')")
+            mid += 1
+            early.append({"shot": shot_id, "t": t,
+                          "inside": bool(frame and frame.get("inside")),
+                          "coverage": (frame or {}).get("coverage")})
+        readings["revealEarly"] = early
+        report.check("取景", "C620-1 在走近途中已进入视野（§12）",
+                     all(r["inside"] and (r["coverage"] or 0) > 0.004 for r in early),
+                     json.dumps(early, ensure_ascii=False)[:240])
+
+        # ---------------- 遮挡转场：必须真的填满画面 ----------------
+        # §17「矿石完全填满整个画面」；§21「钢板最终填满屏幕」。
+        # 这是两个 Match Cut 赖以成立的唯一条件：填不满就不是遮挡，是硬切。
+        occl = {}
+        for name, shot_id, t, key in [
+            ("TR_04 矿石", 'TR_04_ORE', 0.98, "rail_hero_ore"),
+            ("AS_07E 钢板", 'AS_07E_PLATE', 0.98, "as_steel_plate"),
+        ]:
+            evaluate(ws, mid, f"window.__liaoji.setShot({json.dumps(shot_id)}, {t})")
+            mid += 1
+            frame = evaluate(ws, mid, f"window.__liaoji.nodeFrame({json.dumps(key)})")
+            mid += 1
+            occl[name] = {"coverage": (frame or {}).get("coverage"),
+                          "widthCoverage": (frame or {}).get("widthCoverage"),
+                          "heightCoverage": (frame or {}).get("heightCoverage")}
+        readings["occlusion"] = occl
+        for name, row in occl.items():
+            report.check("转场", f"{name}在切点前填满画面（宽或高 ≥ 0.95）",
+                         (row["widthCoverage"] or 0) >= 0.95 or (row["heightCoverage"] or 0) >= 0.95,
+                         json.dumps(row, ensure_ascii=False))
+
         # ---------------- 性能读数 ----------------
         perf = {}
         for shot_id, label in [("OP_01_SWITCH", "开场"), ("SY_02_ALIVE", "沈阳"),
@@ -453,6 +496,12 @@ def main():
                          bool(probe) and isinstance(probe.get("fov"), (int, float))
                          and 18 <= probe["fov"] <= 96,
                          f"fov={probe and probe.get('fov')}")
+            info = evaluate(ws, mid, "window.__liaoji.info()")
+            mid += 1
+            vp["calls"] = (info or {}).get("calls")
+            report.check(f"视口 {vp['name']}", "draw call < 420",
+                         bool(info) and (info.get("calls") or 0) < 420,
+                         f"calls={vp['calls']}")
 
         # ---------------- 截图（人工验收用） ----------------
         if screenshots:

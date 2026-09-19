@@ -32,6 +32,62 @@ function disposeGroup(group) {
   group.removeFromParent();
 }
 
+/** 一个物体在画面上的包围盒与占比。
+    视锥外的点（相机背后 / 越过远裁面）与退化投影都不参与 ——
+    它们的屏幕坐标是 ±Infinity，会把包围盒整个撑爆。 */
+function frameMetrics(root, camera, host) {
+  const width = host.clientWidth;
+  const height = host.clientHeight;
+  const vertex = new THREE.Vector3();
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  let behind = false;
+  let sampled = 0;
+  root.updateWorldMatrix(true, true);
+
+  const visit = (node) => {
+    if (!node.visible) return;
+    if (node.isMesh && node.geometry) {
+      const position = node.geometry.getAttribute('position');
+      if (position) {
+        const stride = Math.max(1, Math.floor(position.count / 240));
+        for (let i = 0; i < position.count; i += stride) {
+          vertex.fromBufferAttribute(position, i).applyMatrix4(node.matrixWorld).project(camera);
+          if (vertex.z < -1 || vertex.z > 1) { behind = true; continue; }
+          if (!Number.isFinite(vertex.x) || !Number.isFinite(vertex.y)) continue;
+          const sx = (vertex.x * 0.5 + 0.5) * width;
+          const sy = (-vertex.y * 0.5 + 0.5) * height;
+          left = Math.min(left, sx);
+          right = Math.max(right, sx);
+          top = Math.min(top, sy);
+          bottom = Math.max(bottom, sy);
+          sampled += 1;
+        }
+      }
+    }
+    node.children.forEach(visit);
+  };
+  visit(root);
+  if (!sampled) return null;
+  return {
+    width,
+    height,
+    left,
+    top,
+    right,
+    bottom,
+    sampled,
+    behind,
+    widthCoverage: (Math.min(right, width) - Math.max(left, 0)) / width,
+    heightCoverage: (Math.min(bottom, height) - Math.max(top, 0)) / height,
+    coverage: ((Math.min(right, width) - Math.max(left, 0)) / width)
+      * ((Math.min(bottom, height) - Math.max(top, 0)) / height),
+    inside: !behind && left >= 0 && top >= 0 && right <= width && bottom <= height,
+  };
+}
+
 function vec(path, t) {
   const out = new THREE.Vector3();
   samplePath(path, t, out);
@@ -215,6 +271,39 @@ export function createJourneyDebug(experience) {
         用于证明反向滚动时动画不崩坏。 */
     worldState() {
       return experience.world?.probe?.() ?? null;
+    },
+    /** 检视一个具名物体的真实状态：可见性、实例数、材质关键参数。
+        用来回答「这个东西到底在不在、亮不亮、朝向对不对」。 */
+    inspect(name) {
+      const node = experience.scene.getObjectByName(name);
+      if (!node) return { found: false };
+      const m = Array.isArray(node.material) ? node.material[0] : node.material;
+      return {
+        found: true,
+        type: node.type,
+        visible: node.visible,
+        parentVisible: node.parent ? node.parent.visible : null,
+        instances: node.count ?? null,
+        position: node.position.toArray().map((v) => Math.round(v * 100) / 100),
+        worldPosition: node.getWorldPosition(new THREE.Vector3()).toArray()
+          .map((v) => Math.round(v * 100) / 100),
+        material: m ? {
+          type: m.type,
+          color: m.color ? `#${m.color.getHexString()}` : null,
+          opacity: m.opacity,
+          transparent: m.transparent,
+          side: m.side,
+          emissive: m.emissive ? `#${m.emissive.getHexString()}` : null,
+        } : null,
+      };
+    },
+    /** 任意具名物体的取景读数。
+        用来验证两件事：遮挡转场是不是真的「填满画面」（coverage → 1），
+        以及 C620-1 是不是「提前十几米就可见」（手册 §12）。 */
+    nodeFrame(name) {
+      const node = experience.scene.getObjectByName(name);
+      if (!node) return null;
+      return frameMetrics(node, experience.camera, experience.host);
     },
     /** 拾取画面中心（或指定 NDC 坐标）的物体，定位“这挡住画面的是什么”。 */
     pickCenter(ndcX = 0, ndcY = 0) {

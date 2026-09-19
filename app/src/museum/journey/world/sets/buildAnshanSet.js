@@ -370,6 +370,36 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
     return plate;
   });
 
+  // 厂区标识：让钢结构与平台也有自己的字
+  createWallText(b, {
+    name: 'as_text_plant', text: '炼铁厂',
+    position: [-11.6, 9.9, -594], rotation: [0, 0.42, 0],  // 让开 z=-604 的立柱
+    width: 6.4, height: 2.1, fontSize: 150, tracking: 18, opacity: 0.72,
+  });
+  createNameplate(b, {
+    name: 'as_plate_platform', title: '严禁跨越',
+    lines: ['高空作业区'],
+    position: [-23.4, 9.0, -640], rotation: [0, -1.57, 0],
+    width: 1.3, height: 0.72,
+  });
+  createWallText(b, {
+    name: 'as_text_tap', text: '出铁 · 注意',
+    position: [-20, 3.4, -644.5], rotation: [0, 0, 0],
+    width: 3.4, height: 1.1, fontSize: 118, tracking: 8, opacity: 0.74,
+  });
+  /* ---------------- 持续的小运动：蒸汽 ----------------
+     出铁口与炉顶各一股：高温车间从来没有静止过。 */
+  parts.steam = b.points('as_steam', 130, { color: 0xc8ccd0, size: 0.9, opacity: 0.22 });
+  parts.steamSeed = Array.from({ length: 130 }, () => {
+    const fromTap = Math.random() < 0.55;
+    return fromTap
+      ? { ox: FX + 5.8 + Math.random() * 2.2, oz: FZ + (Math.random() - 0.5) * 3, oy: 2.2,
+          vy: 0.9 + Math.random() * 1.3, drift: 1.2 + Math.random() }
+      : { ox: FX + (Math.random() - 0.5) * 5, oz: FZ + (Math.random() - 0.5) * 5, oy: 24,
+          vy: 0.7 + Math.random() * 1.1, drift: 0 };
+  });
+  parts.steamPhase = parts.steamSeed.map(() => Math.random());
+
   /* ---------------- 灯光 ---------------- */
   parts.plantKey = new THREE.PointLight(0xb9c6d0, 1.5, 90, 1.4);
   parts.plantKey.position.set(-8, 12, -600);
@@ -483,6 +513,23 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
         truck.group.rotation.y = 0;
         truck.group.visible = form > 0.02 || progress >= ROAD_START_APPROX;
       }
+    }
+
+    /* 蒸汽：从出铁口横向飘出、从炉顶垂直上升，缓慢循环。 */
+    {
+      const array = parts.steam.geometry.getAttribute('position');
+      parts.steamSeed.forEach((seed, i) => {
+        const phase = parts.steamPhase[i];
+        phase < 1
+          ? seed.oy += seed.vy * dt
+          : seed.oy -= seed.vy * dt;
+        if (seed.oy > 26) { seed.oy = 2.2; parts.steamPhase[i] = 0; }
+        if (seed.oy < 1.6) { seed.oy = 24; parts.steamPhase[i] = 1; }
+        seed.ox += seed.drift * dt * 0.35;
+        if (seed.ox > FX + 16) seed.ox = FX + 5.4;
+        array.setXYZ(i, seed.ox, seed.oy, seed.oz);
+      });
+      array.needsUpdate = true;
     }
 
     /* 蒙太奇 CUT 1 倾倒 */

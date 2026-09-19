@@ -42,6 +42,11 @@ Owner 验收锁定后，正式建模只允许「Proxy → 正式模型」的替�
 | FS-A04 | 抚顺 | 大型矿用电铲（body/boom/arm/bucket/履带） | S | whitebox | proxy | no | **yes** | 自动循环（抬臂→挖取→回转→卸料） | **拆件正式建模** |
 | FS-A05 | 抚顺 | 坑顶设施（建筑/烟囱/铁塔/胶带机） | B | whitebox | proxy | no | no | no | 程序化 |
 | EN-A01 | 结尾 | 闪回复用开场机位与道具 | — | 复用 OP | — | no | no | no | 无新增 |
+| AMB-01 | 沈阳 | 厂房尘埃粒子 ×240 / 高窗自发光带 ×40 / 柱列 ×28 / 桁架 ×4 组 | B | whitebox | proxy | no | no | 飘浮 / 无 | 程序化 + 实例化 |
+| AMB-02 | 鞍山 | 炉体蒸汽 ×130（出铁口 + 炉顶两股） | B | whitebox | proxy | no | no | 上升循环 | 程序化 |
+| AMB-03 | 公路 | 路面扬尘 ×110 | B | whitebox | proxy | no | no | 上升 / 漂移 | 程序化 |
+| AMB-04 | 抚顺 | 坑内风沙 ×160 | B | whitebox | proxy | no | no | 横向掠过 | 程序化 |
+| TXT-A | 全片 | 空间内展陈文字 28 处（墙面标语 / 年份 / 铭牌 / 门楣 / 线路牌 / 里程碑） | B | whitebox | proxy | no | no | no | CanvasTexture |
 
 ## 统计与新建计划
 

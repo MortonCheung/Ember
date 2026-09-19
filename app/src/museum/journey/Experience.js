@@ -261,7 +261,12 @@ export class Experience {
 
     this.exploreConsole.open(id);
     // C620-1：进入即自动拆解，像一张工业分解图，不是爆炸。
-    if (id === 'lathe') this.tweenLatheExplode(1, 1.1);
+    // 标注先给一半（结构信息的第一步），点具体部件后再升满。
+    if (id === 'lathe') {
+      this.tweenLatheExplode(1, 1.1);
+      const lathe = this.world.interactables.get('lathe')?.rig;
+      if (lathe) gsap.to(lathe.state, { anno: 0.55, duration: 1.0, delay: 0.5, ease: 'power2.out' });
+    }
     return true;
   }
 
@@ -278,7 +283,14 @@ export class Experience {
 
     switch (action.type) {
       case 'select-part':
-        if (id === 'lathe') rig.setAnnotations(action.value ? 1 : 0.5);
+        if (id === 'lathe') {
+          gsap.to(rig.state, {
+            anno: action.value ? 1 : 0.55,
+            duration: 0.5,
+            ease: 'power2.out',
+            overwrite: true,
+          });
+        }
         break;
       case 'assemble':
         if (id === 'lathe') this.tweenLatheExplode(0, 1.2);

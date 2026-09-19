@@ -222,6 +222,17 @@ export function buildRailSet({ reducedMotion = false } = {}) {
     color: 'rgba(226,216,198,.6)',
   });
 
+  // 线路标识：行进过程中的小信息点
+  createWallText(b, {
+    name: 'rail_text_line', text: '沈大线',
+    position: [3.4, 4.75, -306], rotation: [0, 0, 0],  // 贴在信号杆顶端，不浮空
+    width: 1.5, height: 0.6, fontSize: 108, tracking: 6, opacity: 0.78,
+  });
+  createWallText(b, {
+    name: 'rail_text_km', text: 'K12',
+    position: [6.5, 3.4, -330], rotation: [0, 0, 0],
+    width: 0.9, height: 0.5, fontSize: 116, tracking: 4, opacity: 0.7,
+  });
   /* ---------------- 灯光 ---------------- */
   const railKey = new THREE.PointLight(0xcdd8e2, 1.6, 60, 1.5);
   railKey.position.set(2, 7, -300);
