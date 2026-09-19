@@ -13,6 +13,7 @@ import { JourneyOverlay } from './ui/JourneyOverlay.js';
 import { ExhibitMarker } from './ui/ExhibitMarker.js';
 import { InteractionManager } from './InteractionManager.js';
 import { ScrollLock } from './ScrollLock.js';
+import { createJourneyDebug } from './debug/journeyDebug.js';
 import { EXHIBITS, JOURNEY_SEGMENTS } from './data/journey-data.js';
 
 export class Experience {
@@ -109,6 +110,7 @@ export class Experience {
     this.continueButton.addEventListener('click', this.onContinue);
     window.addEventListener('keydown', this.onKeyDown);
     this.cameraRig.applyJourneyPose(0, 0);
+    this.debug = createJourneyDebug(this);
 
     this.resize = this.resize.bind(this);
     this.frame = this.frame.bind(this);
@@ -156,6 +158,21 @@ export class Experience {
     this.state.mode = mode;
     this.root.dataset.mode = mode;
     this.continueButton.hidden = mode !== 'explore';
+  }
+
+  setProgress(progress) {
+    if (!this.available || this.state.mode !== 'journey') return false;
+    const value = this.journeyController.setProgress(progress, { immediate: true });
+    const pathT = this.journeyMap.toPathT(value);
+    this.cameraRig.applyJourneyPose(pathT, value);
+    this.world.update(performance.now(), value);
+    this.interactionManager.update(value);
+    this.state.rawProgress = value;
+    this.state.visualProgress = value;
+    this.state.pathT = pathT;
+    this.state.chapter = this.journeyOverlay.update(value);
+    this.renderer.render(this.scene, this.camera);
+    return value;
   }
 
   getExplorePose(data) {
@@ -237,10 +254,12 @@ export class Experience {
     if (!this.available) return;
     const width = Math.max(1, this.host.clientWidth);
     const height = Math.max(1, this.host.clientHeight);
+    const portrait = width < height;
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
-    this.camera.fov = width < height ? 58 : 52;
+    this.camera.fov = portrait ? 64 : 52;
     this.camera.updateProjectionMatrix();
+    this.cameraRig?.setPortrait(portrait);
   }
 
   onVisibilityChange() {
@@ -279,6 +298,7 @@ export class Experience {
     window.removeEventListener('keydown', this.onKeyDown);
     this.interactionManager?.dispose();
     this.journeyController?.dispose();
+    this.debug?.dispose();
     this.journeyOverlay?.dispose();
     this.cameraRig?.dispose();
     this.world?.dispose();

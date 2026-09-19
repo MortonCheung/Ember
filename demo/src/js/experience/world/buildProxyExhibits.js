@@ -101,6 +101,8 @@ function buildFurnace(reducedMotion) {
   const root = new THREE.Group();
   root.name = 'proxy_furnace';
   root.position.set(16, 0, -40);
+  // 13.15m 原始高度在 14.5m 的参观距离上顶到画幅上沿，收 14% 换回天空余量。
+  root.scale.setScalar(.86);
 
   const body = MATERIALS.body();
   const detail = MATERIALS.detail();
@@ -122,10 +124,11 @@ function buildFurnace(reducedMotion) {
   mouth.position.y = 9.5;
   mouth.rotation.x = Math.PI / 2;
   mouth.position.z = 2.65;
-  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, 8.4, 12), detail);
+  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, 5.6, 12), detail);
   pipe.name = 'proxy_furnace_pipe';
   pipe.rotation.z = Math.PI / 2;
-  pipe.position.set(-4.6, 8.3, 0);
+  // 煤气管挂到背离参观动线的一侧：原先伸向走廊，既压迫空间又让轮廓严重偏心。
+  pipe.position.set(3, 8.3, 0);
   const platform = new THREE.Mesh(new THREE.TorusGeometry(3.65, .16, 8, 28), detail);
   platform.name = 'proxy_furnace_platform';
   platform.rotation.x = Math.PI / 2;
@@ -174,7 +177,10 @@ function buildMine(reducedMotion) {
   const root = new THREE.Group();
   root.name = 'proxy_mine';
   root.position.set(-16, -.9, -80);
-  root.rotation.y = .12;
+  // 机械臂原先横跨参观动线，相机贴到铲斗上导致结构读不出来。
+  // 转向后长臂伸向厅内深处，访客以侧面对着设备，主体／机械臂／铲三个层次可读。
+  root.rotation.y = 1.35;
+  root.scale.setScalar(.68);
 
   const body = MATERIALS.body();
   const detail = MATERIALS.detail();

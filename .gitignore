@@ -23,6 +23,7 @@ pnpm-debug.log*
 Thumbs.db
 
 # 验收脚本产物（截图 / 报告）与工作区临时文件
-.workbuddy/
+.workbuddy/*
+!.workbuddy/verify_journey.py
 .staging/
 *.local

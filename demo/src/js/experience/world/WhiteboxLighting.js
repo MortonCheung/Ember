@@ -29,7 +29,7 @@ export class WhiteboxLighting {
     this.furnaceGlow.position.set(16, 5.5, -40);
 
     this.exitGlow = new THREE.PointLight(0xffd7a0, 1.5, 28, 1.5);
-    this.exitGlow.position.set(0, 5, -112);
+    this.exitGlow.position.set(0, 5, -116);
 
     scene.add(this.ambient, this.key, this.furnaceGlow, this.exitGlow);
     scene.fog = new THREE.Fog(0x11171b, 22, 82);

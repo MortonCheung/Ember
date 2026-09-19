@@ -34,7 +34,8 @@
   display: block;
   width: 100%;
   height: 100%;
-  touch-action: pan-y;
+  /* OrbitControls 会写入内联 touch-action:none；Journey 必须显式让原生纵向滑动胜出。 */
+  touch-action: pan-y !important;
 }
 
 .liaoji-overlay {
@@ -200,7 +201,7 @@
 .liaoji-experience[data-mode="explore"] .liaoji-canvas-host canvas,
 .liaoji-experience[data-mode="entering-explore"] .liaoji-canvas-host canvas,
 .liaoji-experience[data-mode="returning"] .liaoji-canvas-host canvas {
-  touch-action: none;
+  touch-action: none !important;
 }
 
 @media (max-width: 600px) {

@@ -74,7 +74,7 @@ export function buildWhiteboxMuseum(scene, { reducedMotion = false } = {}) {
   for (const z of [7, 1, -5, -11]) {
     box(`shenyang_beam_${z}`, [20, .26, .45], [-11, 5.6, z], materials.structure);
   }
-  box('shenyang_plinth', [8.5, .45, 5.2], [-16, .22, -3], materials.dark);
+  box('shenyang_plinth', [7.6, .26, 3.2], [-16, .13, -3], materials.dark);
 
   // 第一段城市过渡以错开的框架强调“仍在同一座建筑中”。
   box('transition_a_floor', [14, .18, 21], [-1.5, -.09, -18], materials.floor, -.44);
@@ -103,20 +103,22 @@ export function buildWhiteboxMuseum(scene, { reducedMotion = false } = {}) {
   room('fushun', { center: [-12, -80], size: [24, 28], floorY: -.9, wallHeight: 7, openings: ['front', 'right', 'back'] });
   box('fushun_plinth', [10, .55, 7], [-16, -.62, -80], materials.dark);
   for (const z of [-72, -80, -88]) {
-    box(`fushun_strata_${z}`, [23, .16, .8], [-12, 1.6 + (z + 80) * .08, z], materials.accent);
+    // 地层板只压在矿业设备上方，不横跨参观动线（原先 23m 宽会切进相机视锥）。
+    box(`fushun_strata_${z}`, [13, .16, .8], [-17, 1.6 + (z + 80) * .08, z], materials.accent);
   }
 
   // 终章重新抬升并收束到一条明亮出口。
-  box('finale_floor', [18, .18, 32], [-1.5, -.18, -101], materials.floor, -.28);
-  for (let i = 0; i < 4; i += 1) {
+  // 出口整体后移 4m 并把柱廊加到 5 跨，让亮门洞成为远处的收束点而不是糊脸的大平面。
+  box('finale_floor', [18, .18, 38], [-1.5, -.18, -102], materials.floor, -.28);
+  for (let i = 0; i < 5; i += 1) {
     const z = -94 - i * 5.5;
     box(`finale_frame_${i}_l`, [.32, 7.4, .42], [-7 + i * 1.5, 3.5, z], materials.structure, -.28);
     box(`finale_frame_${i}_r`, [.32, 7.4, .42], [7 + i * .3, 3.5, z], materials.structure, -.28);
     box(`finale_frame_${i}_top`, [14, .32, .42], [i * .7, 7.1, z], materials.structure, -.28);
   }
-  box('exit_wall', [18, 8, .5], [0, 4, -114], materials.wall);
-  box('exit_opening', [5.4, 6.2, .62], [0, 3.1, -113.65], materials.accent);
-  box('exit_light', [4.2, 5.4, .7], [0, 2.7, -113.25], new THREE.MeshBasicMaterial({ color: 0xffe8bf }));
+  box('exit_wall', [20, 8.4, .5], [0, 4, -118], materials.wall);
+  box('exit_opening', [5.4, 6.2, .62], [0, 3.1, -117.65], materials.accent);
+  box('exit_light', [4.2, 5.4, .7], [0, 2.7, -117.25], new THREE.MeshBasicMaterial({ color: 0xffe8bf }));
 
   const lighting = new WhiteboxLighting(scene);
   const proxies = buildProxyExhibits({ exhibits: EXHIBITS, reducedMotion });

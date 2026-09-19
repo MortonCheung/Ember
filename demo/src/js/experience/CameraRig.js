@@ -21,7 +21,15 @@ export class CameraRig {
     this.position = new THREE.Vector3();
     this.forwardTarget = new THREE.Vector3();
     this.focusTarget = new THREE.Vector3();
+    this.dollyDirection = new THREE.Vector3();
+    // 竖屏的水平视场只有横屏的三成左右，Hero 会被边缘裁掉。
+    // 打开后沿视线方向后退：常态退 0.9m 换回空间感，Hero 聚焦区间按权重最多再退 3.4m。
+    this.portrait = false;
     this.poseTween = null;
+  }
+
+  setPortrait(isPortrait) {
+    this.portrait = Boolean(isPortrait);
   }
 
   getJourneyPose(pathT, progress) {
@@ -35,6 +43,17 @@ export class CameraRig {
     if (focus) {
       this.focusTarget.set(...focus.exhibit.anchor);
       this.target.lerp(this.focusTarget, focus.weight * 0.78);
+    }
+
+    if (this.portrait) {
+      const dolly = 0.9 + (focus ? focus.weight * (focus.exhibit.portraitDolly ?? 1) : 0) * 3.4;
+      this.dollyDirection.copy(this.position).sub(this.target);
+      // 只做水平后退：注视点常高于视点，照原方向退会把 1.65m 的视点高度一起拉下去。
+      this.dollyDirection.y = 0;
+      if (this.dollyDirection.lengthSq() > 1e-6) {
+        this.dollyDirection.normalize();
+        this.position.addScaledVector(this.dollyDirection, dolly);
+      }
     }
 
     return {
