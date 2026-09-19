@@ -1,0 +1,991 @@
+/* ============================================================
+   layout.css — 首页与展厅页布局
+   对应设计稿 S01 / S02
+   ============================================================ */
+
+/* ============ 通用：页面容器 ============ */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--s8);
+}
+
+/* ============ 顶栏 ============ */
+.topbar {
+  height: var(--topbar-h);
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--c-line);
+  background: color-mix(in srgb, var(--c-bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.topbar__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s6);
+}
+.logo {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+}
+.logo__mark {
+  width: 8px; height: 8px; border-radius: 2px;
+  background: var(--c-iron);
+  flex: 0 0 auto;
+}
+/* 顶栏 logo 方块比 HUD 的大（对齐设计稿 S01） */
+.topbar .logo__mark {
+  width: 20px; height: 20px;
+  border-radius: 6px;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  margin-left: var(--s2);
+}
+.nav__item {
+  font-size: var(--fs-body);
+  color: var(--c-text-muted);
+  transition: color .18s ease;
+}
+.nav__item:hover { color: var(--c-text); }
+.nav__item[aria-current="page"] { color: var(--c-iron); }
+
+.topbar__spacer { flex: 1 1 auto; }
+
+/* ============ 首页 Hero ============ */
+.hero {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: var(--s8);
+  align-items: center;
+  padding: var(--s8) 0 calc(var(--s8) * 1.4);
+}
+.hero__col { min-width: 0; }
+
+.hero h1 {
+  font-size: var(--fs-display);
+  line-height: 1.12;
+  margin: var(--s3) 0 var(--s4);
+  letter-spacing: -.01em;
+  text-wrap: balance;   /* 窄屏折行时各行均衡，避免单字悬挂 */
+}
+.hero__body {
+  color: var(--c-text-muted);
+  max-width: 46ch;
+  margin-bottom: var(--s6);
+}
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+/* 右栏：滚动飞越画布（Step 1 = 占位） */
+.flyover {
+  position: relative;
+  height: 520px;
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  background:
+    radial-gradient(120% 90% at 62% 38%, rgba(232, 102, 60, .16) 0%, transparent 58%),
+    linear-gradient(160deg, #2A1D14 0%, #171B21 46%, #12161B 100%);
+}
+/* 画布顶部：chip 行 + 进度线（对齐设计稿 S01） */
+.flyover__top {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 8px 2px;
+}
+.flyover__chips {
+  display: flex;
+  gap: var(--s1);
+  flex-wrap: wrap;
+}
+.flyover__track {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--c-line);
+  overflow: hidden;
+}
+/* P2：进度由滚动注入的 --flyover-progress（0–1）驱动，删除硬编码 34% */
+.flyover__fill {
+  width: calc(var(--flyover-progress, 0) * 100%);
+  height: 100%;
+  background: var(--c-iron);
+}
+
+/* -- 飞越舞台：三章节降级实现（无视频素材也能跑；ready 后由 <video> 接管） -- */
+.flyover__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 320px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #E3E5E8;
+}
+.flyover__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.flyover__stage[data-asset-status="ready"] .flyover__video { display: block; }
+.flyover__stage[data-asset-status="ready"] .flyover__chapter { opacity: 0; pointer-events: none; }
+
+.flyover__chapter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 20px 22px;
+  opacity: 0;
+  transition: opacity .45s ease;
+}
+.flyover__chapter.is-active { opacity: 1; }
+.flyover__chapter-tag {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  font-size: var(--fs-micro);
+  letter-spacing: .1em;
+  color: var(--c-iron);
+}
+.flyover__chapter-title {
+  color: var(--c-text);
+  font-size: var(--fs-h2);
+  line-height: 1.25;
+}
+.flyover__chapter-note {
+  color: rgba(242, 244, 247, .62);
+  font-size: var(--fs-caption);
+  max-width: 40ch;
+}
+/* 章节主视觉：CSS 渐变 + 程序化深色工业质感（无真实图片） */
+.flyover__chapter[data-chapter="0"] {
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 2px, transparent 2px 46px),
+    linear-gradient(180deg, #1B2129 0%, #232019 52%, #382519 100%);
+}
+.flyover__chapter[data-chapter="1"] {
+  background:
+    radial-gradient(62% 56% at 50% 40%, rgba(232, 102, 60, .30) 0%, transparent 66%),
+    linear-gradient(180deg, #14181D 0%, #0E1116 100%);
+}
+.flyover__chapter[data-chapter="2"] {
+  background:
+    radial-gradient(48% 30% at 50% 100%, rgba(232, 102, 60, .34) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 38px),
+    linear-gradient(180deg, #10141A 0%, #1C222B 58%, #2A1D14 100%);
+}
+
+/* -- 章节预告（首屏下方的滚动行程，同时给飞越以滚动空间） -- */
+.flyover-recipes {
+  padding: var(--s6) 0 var(--s8);
+  border-top: 1px solid var(--c-line);
+}
+.flyover-recipes__list {
+  margin-top: var(--s4);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s3);
+}
+.flyover-recipes__item {
+  padding: var(--s3);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  transition: border-color .25s ease, transform .25s ease;
+}
+.flyover-recipes__item.is-active {
+  border-color: var(--c-iron);
+  transform: translateY(-3px);
+}
+.flyover-recipes__num {
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  color: var(--c-iron);
+}
+.flyover-recipes__title {
+  margin-top: var(--s1);
+  font-size: var(--fs-h3);
+}
+.flyover-recipes__note {
+  margin-top: 6px;
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+}
+.flyover__caption {
+  margin-top: 12px;
+  font-size: var(--fs-micro);
+  color: var(--c-text-muted);
+}
+
+/* ============ 展厅页（全屏沉浸，对应设计稿 S02） ============ */
+.hall {
+  position: relative;
+  flex: 1 1 auto;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* -- 视口（占满全屏，HUD / 场馆导航悬浮其上） -- */
+.viewport {
+  position: absolute;
+  inset: 0;
+  background: var(--c-bg);
+  overflow: hidden;
+}
+.viewport canvas { display: block; width: 100%; height: 100%; }
+
+/* -- HUD 顶栏 -- */
+.hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: var(--hud-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 0 var(--s3);
+  background: linear-gradient(to bottom,
+    rgba(14, 17, 22, .88) 0%,
+    rgba(14, 17, 22, .62) 72%,
+    rgba(14, 17, 22, 0) 100%);
+  z-index: 10;
+}
+.hud__back {
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color .18s ease, background-color .18s ease;
+}
+.hud__back:hover { color: var(--c-text); background: rgba(255, 255, 255, .06); }
+.hud__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.hud__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  font-size: var(--fs-micro);
+  color: var(--c-text-muted);
+}
+.hud__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--c-iron);
+  box-shadow: 0 0 8px var(--c-iron);
+}
+.hud__spacer { flex: 1 1 auto; }
+
+/* -- 场馆导航（横向药丸行，HUD 下方悬浮） -- */
+.halls {
+  position: absolute;
+  top: var(--hud-h);
+  left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s2) var(--s3);
+  z-index: 9;
+}
+.halls__item {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  background: rgba(23, 27, 33, .72);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease;
+  white-space: nowrap;
+}
+.halls__item:hover { color: var(--c-text); }
+.halls__item[aria-current="true"] {
+  background: var(--c-iron);
+  border-color: var(--c-iron);
+  color: #14181D;
+  font-weight: 600;
+}
+
+/* -- 操作提示 -- */
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: var(--s6);
+  transform: translateX(-50%);
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(14, 17, 22, .6);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity .5s ease;
+  pointer-events: none;
+}
+.hint.is-hidden { opacity: 0; }
+
+/* -- 小地图占位 -- */
+.minimap {
+  position: absolute;
+  right: var(--s3);
+  bottom: var(--s3);
+  width: 180px;
+  height: 120px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--c-surface) 88%, transparent);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-micro);
+  color: var(--c-text-muted);
+  z-index: 8;
+}
+
+/* -- 展品热点药丸（S02：深色半透明 + 白字；JS 每帧写 left/top） -- */
+.hotspots {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+.hotspot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: var(--fs-caption);
+  color: var(--c-text);
+  white-space: nowrap;
+  background: rgba(14, 17, 22, .66);
+  border: 1px solid rgba(255, 255, 255, .22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform .18s ease, border-color .18s ease,
+              background-color .18s ease, color .18s ease;
+  will-change: left, top;
+}
+.hotspot:hover {
+  transform: translate(-50%, -100%) scale(1.12);
+  border-color: var(--c-iron);
+}
+.hotspot.is-active {
+  background: var(--c-iron);
+  border-color: var(--c-iron);
+  color: #14181D;
+  font-weight: 600;
+}
+
+/* -- 展品信息卡（S02 右侧：eyebrow / 标题 / 正文 / 全宽主按钮） -- */
+.exhibit-card {
+  position: absolute;
+  top: 108px;
+  right: var(--s3);
+  width: 300px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding: var(--s3);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: rgba(14, 17, 22, .88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+}
+.exhibit-card[hidden] { display: none; }
+.exhibit-card .eyebrow { font-size: var(--fs-caption); }
+.exhibit-card__title { font-size: var(--fs-h2); }
+.exhibit-card__body {
+  font-size: var(--fs-body);
+  color: var(--c-text-muted);
+  line-height: 1.8;
+}
+.exhibit-card__cta { margin-top: var(--s2); width: 100%; }
+
+/* -- 场馆导航「尚未开放」提示条 -- */
+.halls-notice {
+  position: absolute;
+  top: calc(var(--hud-h) + 60px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: var(--fs-caption);
+  color: var(--c-text);
+  background: rgba(14, 17, 22, .85);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity .3s ease;
+}
+.halls-notice[hidden] { display: none; }
+
+/* -- 加载 / 降级 覆盖层 -- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-bg);
+  z-index: 15;
+  transition: opacity .35s ease;
+}
+.overlay[hidden] { display: none; }
+.overlay.is-out { opacity: 0; pointer-events: none; }
+
+.overlay__card {
+  max-width: 420px;
+  padding: var(--s6);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+}
+.overlay__card h2 { font-size: var(--fs-h3); }
+.overlay__card p { font-size: var(--fs-caption); color: var(--c-text-muted); }
+.overlay__card .btn { margin-top: var(--s2); }
+.overlay__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ============ 响应式 ============ */
+@media (max-width: 1100px) {
+  .hero { grid-template-columns: 1fr; gap: var(--s6); }
+  .flyover { height: 360px; }
+  :root { --fs-display: 46px; --fs-h1: 34px; }
+}
+
+/* ============ 亲手浇铸页（#/cast，对应设计稿 S03，Step 3 新增） ============ */
+/* hidden 属性优先级修复：本页多个悬浮卡用 display:flex，会压过 UA 的 [hidden] 样式 */
+.cast [hidden] { display: none !important; }
+/* 原生 disabled 按钮态（base.css 只定义了 aria-disabled） */
+.btn[disabled] { opacity: .42; cursor: not-allowed; }
+.btn[disabled]:hover { opacity: .42; }
+
+.cast {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s3) var(--s8) var(--s6);
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr);
+  gap: var(--s3);
+  align-items: stretch;
+}
+.cast__page-title {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: var(--s2);
+}
+.cast__stage-col { min-width: 0; display: flex; flex-direction: column; gap: var(--s2); }
+
+/* -- 视口卡片（内嵌式，非全屏） -- */
+.cast__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 420px;
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  overflow: hidden;
+  background: var(--c-bg);
+}
+.cast__viewport { position: absolute; inset: 0; }
+
+/* -- 视口注解（左上悬浮，画稿原文） -- */
+.cast__annos {
+  position: absolute;
+  top: var(--s2); left: var(--s2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  z-index: 5;
+  pointer-events: none;
+}
+.cast__anno {
+  font-size: var(--fs-caption);
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(14, 17, 22, .78);
+  border: 1px solid var(--c-line);
+  color: var(--c-text);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cast__anno--warn { color: var(--c-iron); border-color: color-mix(in srgb, var(--c-iron) 45%, var(--c-line)); }
+
+/* -- 铁水温度卡（右上悬浮，画稿 S03） -- */
+.cast__temp {
+  position: absolute;
+  top: var(--s2); right: var(--s2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: rgba(14, 17, 22, .78);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 5;
+}
+.cast__temp-label { font-size: var(--fs-micro); color: var(--c-text-muted); }
+.cast__temp-value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--c-iron);
+}
+.cast__temp-badge { font-size: var(--fs-micro); color: var(--c-text-muted); }
+.cast__temp-badge[data-level="warn"] { color: var(--c-iron); }
+
+/* -- 底部控制条 -- */
+.cast__controls {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  min-height: 84px;
+}
+.cast__slider {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cast__slider-label {
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s1);
+}
+.cast__slider-label b { color: var(--c-text); font-weight: 600; }
+.cast__slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--c-iron);
+  cursor: pointer;
+}
+.cast__slider input[type="range"]:disabled { cursor: not-allowed; opacity: .55; }
+/* 湿度滑杆：左=湿、右=干（§2 ③），视觉反向 */
+.cast__slider--h input[type="range"] { direction: rtl; }
+.cast__slider-range {
+  font-size: var(--fs-micro);
+  color: var(--c-text-muted);
+}
+.cast__controls .btn { flex: 0 0 auto; }
+.cast__select-info, .cast__wait {
+  flex: 1 1 auto;
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+}
+
+/* -- 右侧：实时质量反馈面板 -- */
+.cast__panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3);
+  border-radius: var(--radius);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+}
+.cast__panel-title { font-size: var(--fs-h2); }
+.cast__score {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+}
+.cast__score-num {
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--c-iron);
+}
+.cast__score-unit { font-size: var(--fs-caption); color: var(--c-text-muted); }
+.cast__score-unit b { font-weight: 600; }
+.cast__score-unit b[data-level="ok"] { color: var(--c-text); }
+.cast__score-unit b[data-level="bad"] { color: var(--c-iron); }
+
+.cast__subs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  border-top: 1px solid var(--c-line);
+  padding-top: var(--s2);
+}
+.cast__sub {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "label value" "track track";
+  gap: 4px var(--s1);
+  font-size: var(--fs-caption);
+}
+.cast__sub-label { grid-area: label; color: var(--c-text-muted); }
+.cast__sub-value { grid-area: value; font-weight: 600; }
+.cast__sub-track {
+  grid-area: track;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--c-surface-2);
+  overflow: hidden;
+}
+.cast__sub-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: var(--c-iron);
+  transition: width .6s cubic-bezier(.22, .8, .36, 1);
+}
+.cast__diagnosis {
+  font-size: var(--fs-caption);
+  line-height: 1.8;
+  color: var(--c-text-muted);
+  border-top: 1px solid var(--c-line);
+  padding-top: var(--s2);
+}
+.cast__scrap { display: block; color: var(--c-iron); font-weight: 600; }
+.cast__grade { font-size: var(--fs-caption); color: var(--c-text); }
+.cast__actions {
+  display: flex;
+  gap: var(--s1);
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.cast__actions .btn { flex: 1 1 auto; }
+.cast__unlock { font-size: var(--fs-micro); color: var(--c-text-muted); }
+
+/* -- 顶栏步骤指示（画稿 S03 右上） -- */
+.cast__steps {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+.cast__step {
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  white-space: nowrap;
+  transition: color .18s ease;
+}
+.cast__step[aria-current] { color: var(--c-iron); font-weight: 600; }
+.cast__step.is-done { color: var(--c-text); }
+
+/* ============ 响应式（亲手浇铸） ============ */
+@media (max-width: 1100px) {
+  .cast { grid-template-columns: 1fr; }
+  .cast__stage { min-height: 340px; }
+}
+@media (max-width: 820px) {
+  .cast { padding: var(--s2) var(--s3) var(--s3); gap: var(--s2); }
+  .cast__page-title { display: none; }          /* 与既有移动端导航收纳一致 */
+  .cast__steps {
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-left: auto;
+  }
+  .cast__steps::-webkit-scrollbar { display: none; }
+  .cast__step { flex: 0 0 auto; }
+  .cast__controls { flex-wrap: wrap; gap: var(--s2); }
+  .cast__slider { flex-basis: 100%; }
+  .cast__controls .btn { flex: 1 1 100%; }
+  .cast__score-num { font-size: 48px; }
+}
+@media (max-width: 400px) {
+  .cast__step { font-size: var(--fs-micro); }
+  .cast__temp-value { font-size: 24px; }
+}
+
+
+@media (max-width: 820px) {
+  :root { --fs-display: 34px; --fs-h1: 27px; --fs-h2: 22px; --topbar-h: 60px; }
+  .wrap { padding: 0 var(--s3); }
+  .nav { display: none; }              /* 移动端先收导航，Step 1 不做抽屉 */
+  .hero { padding: var(--s6) 0 var(--s8); }
+  .hall { height: 100vh; }
+  .halls {
+    overflow-x: auto;
+    padding: var(--s1) var(--s3);
+    scrollbar-width: none;
+  }
+  .halls::-webkit-scrollbar { display: none; }
+  .halls__item { flex: 0 0 auto; }
+  .hud__xr { display: none; }          /* 移动端收起 WebXR 入口 */
+  .minimap { width: 120px; height: 80px; }
+  /* P1：信息卡在窄屏铺满宽度、落在导航条下方 */
+  .exhibit-card {
+    top: 130px;
+    left: var(--s3);
+    right: var(--s3);
+    width: auto;
+  }
+  /* P2：章节预告单列 */
+  .flyover-recipes__list { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .hero__actions { flex-direction: column; align-items: stretch; }
+  .hero__actions .btn { width: 100%; }
+  .flyover__chips { display: none; }
+  .hud__badge { display: none; }   /* 窄屏收起徽标，保住 HUD 标题不换行 */
+  .hint { bottom: 130px; }         /* 抬到小地图上方，避免重叠 */
+}
+
+/* ============ 场馆导航「筹备中」药丸（Step 4 §3，三页共用） ============ */
+/* 刻意的诚实降级：看起来可点、点了只弹提示的药丸会被读成"按钮坏了"，
+   所以筹备中馆文字用 steel 灰并缀「· 筹备中」，与可点馆拉开一级。 */
+.halls__item--pending { color: var(--c-steel); }
+.halls__item--pending:hover { color: var(--c-steel); }
+.halls__pending { font-size: 11px; color: var(--c-steel); }
+
+/* ============ 序厅（#/entrance，对应设计稿 S07，Step 4 新增） ============ */
+/* 操作提示在右下（S07）；hall 的 .hint 默认居中，这里覆写 */
+.entrance .hint {
+  left: auto;
+  right: var(--s3);
+  transform: none;
+  bottom: 96px;
+}
+/* 说明条（左下，画稿文案逐字） */
+.entrance-strip {
+  position: absolute;
+  left: var(--s3);
+  bottom: 92px;
+  z-index: 6;
+  max-width: min(440px, 60%);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: var(--fs-caption);
+  line-height: 1.6;
+  color: var(--c-text);
+  background: rgba(14, 17, 22, .78);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+/* 进场序列（底部居中）：闭合「厂区外景 → 序厅 → 铸造馆」 */
+.sequence {
+  position: absolute;
+  left: 50%;
+  bottom: var(--s3);
+  transform: translateX(-50%);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(14, 17, 22, .78);
+  border: 1px solid var(--c-line);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: var(--fs-caption);
+  white-space: nowrap;
+}
+.sequence__item { color: var(--c-text-muted); }
+.sequence__item.is-current {
+  color: var(--c-iron);
+  font-weight: 600;
+}
+.sequence__sep { color: var(--c-steel); }
+
+/* ============ 通史馆长卷（#/history，对应设计稿 S08，Step 4 新增） ============ */
+/* 2D 长卷，零 WebGL。横向栅格按 §2.3（1440 稿）：
+   内容左界 120 / 脊线 140 / 节点内容 190（宽 1060）/ 右栏信息 w 320 / 长卷轨 1336 */
+.history__scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: calc(var(--hud-h) + 60px);   /* 让出 HUD + 药丸行 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-line) transparent;
+}
+.history__inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s4) 120px 96px;
+}
+/* 头部：左块（眉标/主标题/导语）+ 右块（馆体信息 w320 右对齐） */
+.history__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s4);
+  border-bottom: 1px solid var(--c-line);   /* 分隔线 1px line 色 */
+  padding-bottom: var(--s4);
+}
+.history__head-main { min-width: 0; }
+.history__eyebrow {
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  color: var(--c-iron);
+  letter-spacing: 2px;
+}
+.history__title {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: var(--s1);
+}
+.history__lead {
+  font-size: var(--fs-body);
+  color: var(--c-text-muted);
+  margin-top: var(--s1);
+}
+.history__meta {
+  flex: 0 0 auto;
+  width: 320px;
+  text-align: right;
+  padding-top: 6px;
+}
+.history__meta-name { font-size: 13px; color: var(--c-text-muted); }
+.history__meta-sub { font-size: 13px; color: var(--c-steel); margin-top: 2px; }
+
+/* -- 时间轴：脊线 2px line 色（内容左界 +20），节点内容 +70 -- */
+.timeline {
+  position: relative;
+  list-style: none;
+  padding: 0;
+  margin: 40px 0 0;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 19px;                                /* 脊线 2px 中心对齐节点点圆心 */
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--c-line);
+}
+.timeline__node {
+  position: relative;
+  max-width: 1060px;
+  padding-left: 70px;
+  margin-bottom: 64px;
+}
+.timeline__node:last-child { margin-bottom: 0; }
+.timeline__dot {
+  position: absolute;
+  left: 15px;                                /* 10×10 圆，圆心落在脊线上 */
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c-steel);
+}
+/* 关键节点（1957）：铁水橙点 + 铁水橙年份（H2：铁水橙的四处用途之一） */
+.timeline__node--key .timeline__dot { background: var(--c-iron); box-shadow: 0 0 8px var(--c-iron); }
+.timeline__year {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--c-steel);
+}
+.timeline__node--key .timeline__year { color: var(--c-iron); }
+.timeline__title {
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  margin-top: 4px;
+}
+.timeline__body {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--c-text-muted);
+  margin-top: 6px;
+}
+.timeline__cta { margin-top: var(--s2); }
+
+/* -- 长卷轨（右侧 x=1336 @1440）：轨 2px line，指示段 2px 铁水橙 -- */
+.scrollrail {
+  position: absolute;
+  top: 50%;
+  right: clamp(16px, 7.2vw, 104px);          /* 1440 下 = 104px（x=1336） */
+  transform: translateY(-50%);
+  height: 40vh;
+  width: 2px;
+  background: var(--c-line);
+  z-index: 8;
+}
+.scrollrail__indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 64px;
+  background: var(--c-iron);
+  will-change: transform;
+}
+
+/* ============ 响应式（通史馆 H4：≤768px 收单列，无横向滚动） ============ */
+@media (max-width: 768px) {
+  .history__inner { padding: var(--s3) 24px 72px; }   /* 内容左界 24 */
+  .history__head { flex-direction: column; gap: var(--s2); }
+  .history__meta { width: auto; text-align: left; }   /* 右栏信息堆到标题下方 */
+  .timeline::before { left: 4px; }                    /* 脊线 x=24（容器内 0 + 圆心偏移） */
+  .timeline__dot { left: 0; }
+  .timeline__node { padding-left: 32px; margin-bottom: 48px; }  /* 节点内容 x=56 */
+  .scrollrail { display: none; }                      /* 单列下长卷轨无对应物，收起 */
+}

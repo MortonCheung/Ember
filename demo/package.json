@@ -1,0 +1,18 @@
+{
+  "name": "industrial-museum-demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "中国工业博物馆数字展馆 · Step 1 空壳 demo",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.160.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

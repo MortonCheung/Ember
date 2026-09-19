@@ -1,0 +1,28 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+dist-ssr/
+
+# 本地环境
+.env
+.env.local
+.env.*.local
+
+# 日志
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 编辑器 / 系统
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# 验收脚本产物（截图 / 报告）与工作区临时文件
+.workbuddy/
+.staging/
+*.local
