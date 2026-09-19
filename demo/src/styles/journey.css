@@ -85,6 +85,26 @@
   top: clamp(24px, 5vh, 56px);
   left: clamp(24px, 5vw, 72px);
   min-height: 4rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 14px;
+  opacity: 0;
+  transition: opacity .25s ease;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, .45);
+}
+
+.liaoji-chapter__number {
+  color: var(--liaoji-accent);
+  font-family: var(--font-num);
+  font-size: 12px;
+  letter-spacing: .12em;
+}
+
+.liaoji-chapter strong {
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 500;
+  letter-spacing: .04em;
 }
 
 .liaoji-exhibit-marker,

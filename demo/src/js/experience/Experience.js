@@ -5,6 +5,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { detectWebGL } from '../scene/fallback.js';
+import { JourneyMap } from './JourneyMap.js';
+import { JourneyController } from './JourneyController.js';
+import { CameraRig } from './CameraRig.js';
+import { buildWhiteboxMuseum } from './world/buildWhiteboxMuseum.js';
+import { JourneyOverlay } from './ui/JourneyOverlay.js';
+import { JOURNEY_SEGMENTS } from './data/journey-data.js';
 
 export class Experience {
   constructor({ root, host, scrollTrack, overlay }) {
@@ -15,6 +21,14 @@ export class Experience {
     this.running = false;
     this.rafId = null;
     this.lastTime = 0;
+    this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.state = {
+      mode: 'journey',
+      rawProgress: 0,
+      visualProgress: 0,
+      pathT: 0,
+      chapter: null,
+    };
 
     const capability = detectWebGL();
     if (!capability.ok) {
@@ -41,7 +55,6 @@ export class Experience {
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x14171a);
-    this.scene.fog = new THREE.Fog(0x14171a, 30, 150);
 
     this.camera = new THREE.PerspectiveCamera(52, 1, 0.1, 300);
     this.camera.position.set(0, 1.65, 42);
@@ -53,7 +66,16 @@ export class Experience {
     this.controls.target.set(0, 1.65, 30);
     this.controls.update();
 
-    this.buildScaffoldScene();
+    this.world = buildWhiteboxMuseum(this.scene);
+    this.scene.add(this.world.group);
+    this.journeyMap = new JourneyMap(JOURNEY_SEGMENTS);
+    this.cameraRig = new CameraRig(this.camera, this.controls);
+    this.journeyController = new JourneyController({
+      scrollTrack: this.scrollTrack,
+      reducedMotion: this.reducedMotion,
+    });
+    this.journeyOverlay = new JourneyOverlay(this.overlay);
+    this.cameraRig.applyJourneyPose(0, 0);
 
     this.resize = this.resize.bind(this);
     this.frame = this.frame.bind(this);
@@ -65,39 +87,9 @@ export class Experience {
     this.resize();
   }
 
-  buildScaffoldScene() {
-    const clay = new THREE.MeshStandardMaterial({ color: 0xc9c7c0, roughness: 0.86 });
-    const accent = new THREE.MeshStandardMaterial({ color: 0xb95632, roughness: 0.72 });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 50), clay);
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.z = 20;
-    floor.receiveShadow = true;
-
-    const portal = new THREE.Group();
-    const postGeometry = new THREE.BoxGeometry(1.2, 8, 1.2);
-    for (const x of [-5, 5]) {
-      const post = new THREE.Mesh(postGeometry, clay);
-      post.position.set(x, 4, 28);
-      post.castShadow = true;
-      portal.add(post);
-    }
-    const lintel = new THREE.Mesh(new THREE.BoxGeometry(11.2, 1.2, 1.2), accent);
-    lintel.position.set(0, 7.4, 28);
-    portal.add(lintel);
-
-    const ambient = new THREE.HemisphereLight(0xdde2e6, 0x302c28, 2.2);
-    const key = new THREE.DirectionalLight(0xfff2df, 3.4);
-    key.position.set(8, 16, 18);
-    key.castShadow = true;
-
-    this.scaffold = new THREE.Group();
-    this.scaffold.name = 'journey_scaffold';
-    this.scaffold.add(floor, portal, ambient, key);
-    this.scene.add(this.scaffold);
-  }
-
   start() {
     if (!this.available || this.running) return;
+    this.journeyController.start();
     this.running = true;
     this.lastTime = performance.now();
     this.rafId = requestAnimationFrame(this.frame);
@@ -112,8 +104,15 @@ export class Experience {
     this.rafId = requestAnimationFrame(this.frame);
   }
 
-  update() {
-    if (this.controls.enabled) this.controls.update();
+  update(time, dt) {
+    const progress = this.journeyController.update(dt);
+    const pathT = this.journeyMap.toPathT(progress);
+    this.cameraRig.applyJourneyPose(pathT, progress);
+    this.world.update(time, progress);
+    this.state.rawProgress = this.journeyController.rawProgress;
+    this.state.visualProgress = progress;
+    this.state.pathT = pathT;
+    this.state.chapter = this.journeyOverlay.update(progress);
   }
 
   resize() {
@@ -156,12 +155,10 @@ export class Experience {
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.resizeObserver?.disconnect();
     this.controls?.dispose();
-    this.scene?.traverse((object) => {
-      if (!object.isMesh) return;
-      object.geometry?.dispose();
-      const materials = Array.isArray(object.material) ? object.material : [object.material];
-      materials.forEach((material) => material?.dispose());
-    });
+    this.journeyController?.dispose();
+    this.journeyOverlay?.dispose();
+    this.cameraRig?.dispose();
+    this.world?.dispose();
     this.renderer?.dispose();
     this.canvas?.remove();
   }
