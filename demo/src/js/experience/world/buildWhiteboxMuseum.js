@@ -4,6 +4,8 @@
 
 import * as THREE from 'three';
 import { WhiteboxLighting } from './WhiteboxLighting.js';
+import { buildProxyExhibits } from './buildProxyExhibits.js';
+import { EXHIBITS } from '../data/journey-data.js';
 
 const COLORS = {
   floor: 0xaaa9a4,
@@ -13,7 +15,7 @@ const COLORS = {
   accent: 0xb95632,
 };
 
-export function buildWhiteboxMuseum(scene) {
+export function buildWhiteboxMuseum(scene, { reducedMotion = false } = {}) {
   const group = new THREE.Group();
   group.name = 'whitebox_museum';
 
@@ -117,15 +119,19 @@ export function buildWhiteboxMuseum(scene) {
   box('exit_light', [4.2, 5.4, .7], [0, 2.7, -113.25], new THREE.MeshBasicMaterial({ color: 0xffe8bf }));
 
   const lighting = new WhiteboxLighting(scene);
+  const proxies = buildProxyExhibits({ exhibits: EXHIBITS, reducedMotion });
+  group.add(proxies.group);
 
   return {
     group,
-    exhibits: new Map(),
-    update(_time, progress) {
+    exhibits: proxies.exhibits,
+    update(time, progress) {
       lighting.update(progress);
+      proxies.update(time, progress);
     },
     dispose() {
       lighting.dispose();
+      proxies.dispose();
       const uniqueMaterials = new Set(Object.values(materials));
       meshes.forEach((mesh) => {
         if (mesh.material && !Object.values(materials).includes(mesh.material)) {

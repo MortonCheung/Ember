@@ -10,7 +10,9 @@ import { JourneyController } from './JourneyController.js';
 import { CameraRig } from './CameraRig.js';
 import { buildWhiteboxMuseum } from './world/buildWhiteboxMuseum.js';
 import { JourneyOverlay } from './ui/JourneyOverlay.js';
-import { JOURNEY_SEGMENTS } from './data/journey-data.js';
+import { ExhibitMarker } from './ui/ExhibitMarker.js';
+import { InteractionManager } from './InteractionManager.js';
+import { EXHIBITS, JOURNEY_SEGMENTS } from './data/journey-data.js';
 
 export class Experience {
   constructor({ root, host, scrollTrack, overlay }) {
@@ -28,6 +30,8 @@ export class Experience {
       visualProgress: 0,
       pathT: 0,
       chapter: null,
+      discoverableExhibitId: null,
+      exploringExhibitId: null,
     };
 
     const capability = detectWebGL();
@@ -66,7 +70,7 @@ export class Experience {
     this.controls.target.set(0, 1.65, 30);
     this.controls.update();
 
-    this.world = buildWhiteboxMuseum(this.scene);
+    this.world = buildWhiteboxMuseum(this.scene, { reducedMotion: this.reducedMotion });
     this.scene.add(this.world.group);
     this.journeyMap = new JourneyMap(JOURNEY_SEGMENTS);
     this.cameraRig = new CameraRig(this.camera, this.controls);
@@ -75,6 +79,20 @@ export class Experience {
       reducedMotion: this.reducedMotion,
     });
     this.journeyOverlay = new JourneyOverlay(this.overlay);
+    this.exhibitMarker = new ExhibitMarker({
+      element: this.overlay.querySelector('.liaoji-exhibit-marker'),
+      camera: this.camera,
+      host: this.host,
+      onActivate: (id) => this.interactionManager.enterExplore(id),
+    });
+    this.interactionManager = new InteractionManager({
+      experience: this,
+      camera: this.camera,
+      canvas: this.canvas,
+      exhibits: this.world.exhibits,
+      exhibitData: EXHIBITS,
+      marker: this.exhibitMarker,
+    });
     this.cameraRig.applyJourneyPose(0, 0);
 
     this.resize = this.resize.bind(this);
@@ -109,6 +127,7 @@ export class Experience {
     const pathT = this.journeyMap.toPathT(progress);
     this.cameraRig.applyJourneyPose(pathT, progress);
     this.world.update(time, progress);
+    this.interactionManager.update(progress);
     this.state.rawProgress = this.journeyController.rawProgress;
     this.state.visualProgress = progress;
     this.state.pathT = pathT;
@@ -155,6 +174,7 @@ export class Experience {
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.resizeObserver?.disconnect();
     this.controls?.dispose();
+    this.interactionManager?.dispose();
     this.journeyController?.dispose();
     this.journeyOverlay?.dispose();
     this.cameraRig?.dispose();

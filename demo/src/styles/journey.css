@@ -115,6 +115,11 @@
   color: var(--liaoji-ink);
 }
 
+.liaoji-exhibit-marker[hidden],
+.liaoji-continue[hidden] {
+  display: none;
+}
+
 .liaoji-exhibit-marker {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -133,6 +138,10 @@
 .liaoji-exhibit-marker:focus-visible {
   border-color: var(--liaoji-accent);
   background: rgba(20, 23, 26, .9);
+}
+
+.liaoji-exhibit-marker:active {
+  transform: translate(-50%, -50%) scale(.97);
 }
 
 .liaoji-continue {
