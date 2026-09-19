@@ -14,10 +14,24 @@
 
 import * as THREE from 'three';
 import { WorldBuilder, createWorker } from '../primitives.js';
+import { SHOT_RANGES } from '../../storyboard.js';
 import { createWallText } from '../textPlates.js';
 
 const lerp = THREE.MathUtils.lerp;
 const smooth = THREE.MathUtils.smoothstep;
+
+/* 卡车位置同样写成 progress 的纯函数：公路段匀速，揭示段减速。
+   用「只在 road 章节才更新」的 guard，反向滚动与跳转都会读到残留值。 */
+const ROAD_START = SHOT_RANGES.find((r) => r.id === 'RD_01_DEPART')?.start ?? 0.694;
+const ROAD_END = SHOT_RANGES.find((r) => r.id === 'RD_03_REVEAL')?.end ?? 0.783;
+
+function truckZAt(progress) {
+  const span = Math.max(ROAD_END - ROAD_START, 1e-6);
+  const t = THREE.MathUtils.clamp((progress - ROAD_START) / span, 0, 1);
+  // 前 78% 走完 88% 的路程，后 22% 减速到终点
+  const z = t <= 0.78 ? (t / 0.78) * 0.88 : 0.88 + ((t - 0.78) / 0.22) * 0.12;
+  return lerp(-702, -1086, THREE.MathUtils.clamp(z, 0, 1));
+}
 
 export function buildRoadSet({ reducedMotion = false } = {}) {
   const b = new WorldBuilder('set_road');
@@ -210,20 +224,15 @@ export function buildRoadSet({ reducedMotion = false } = {}) {
   const state = { spin: 0 };
 
   function update(frame, ctx) {
-    const { shot, chapterLocalT } = frame;
+    const { shot, progress } = frame;
     const time = ctx?.time ?? 0;
     const dt = ctx?.dt ?? 0;
 
-    // 卡车在 AS-08（鞍山）由钢板变形而来，那一刻归鞍山管；
-    // 进入公路章节后位置才由本 Set 推进。两边不能同时写同一个 position。
-    if (shot.chapter !== 'road') return;
-
-    const roadT = THREE.MathUtils.clamp(chapterLocalT, 0, 1);
     // 卡车沿 -Z 行驶：从鞍钢门口出发，一路把故事带到矿坑边缘后减速。
-    const slow = shot.id === 'RD_03_REVEAL' ? 0.55 : 1;
-    const travel = roadT * slow + (shot.id === 'RD_03_REVEAL' ? 0.45 : 0);
-    const truckZ = lerp(-702, -1086, THREE.MathUtils.clamp(travel, 0, 1));
-    parts.truck.group.position.z = truckZ;
+    // AS-08（鞍山）时 progress 还不到 ROAD_START，纯函数自然落在起点附近，
+    // 由鞍山 Set 接管「钢板 → 车辆」那一刻的姿态。
+    parts.truck.group.position.z = truckZAt(progress);
+    if (shot.chapter !== 'road') return;
 
     state.spin += dt * 9 * (shot.id === 'RD_03_REVEAL' ? 0.35 : 1);
     parts.truck.setWheelSpin(state.spin);
@@ -238,5 +247,9 @@ export function buildRoadSet({ reducedMotion = false } = {}) {
     if (reducedMotion) state.spin = 0;
   }
 
-  return { builder: b, group: b.group, parts, id: 'road', update };
+  function probe() {
+    return { truckZ: parts.truck.group.position.z, form: parts.truck.state.form };
+  }
+
+  return { builder: b, group: b.group, parts, id: 'road', update, probe };
 }

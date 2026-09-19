@@ -347,5 +347,13 @@ export function buildOpeningSet({ reducedMotion = false } = {}) {
     }
   }
 
-  return { builder: b, group: b.group, parts, id: 'opening', update };
+  function probe() {
+    return {
+      lampFlicker: state.lampFlicker,
+      spindleSpin: state.spindleSpin,
+      hookEnergy: state.hookEnergy,
+    };
+  }
+
+  return { builder: b, group: b.group, parts, id: 'opening', update, probe };
 }

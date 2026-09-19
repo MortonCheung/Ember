@@ -112,7 +112,7 @@
       "group": "性能",
       "name": "单镜头 draw call < 420",
       "ok": true,
-      "detail": "worst=179"
+      "detail": "worst=178"
     },
     {
       "group": "旧路由",
@@ -199,40 +199,40 @@
     },
     "perf": {
       "开场": {
-        "calls": 160,
-        "triangles": 4818,
-        "geometries": 465,
-        "textures": 23
+        "calls": 159,
+        "triangles": 4788,
+        "geometries": 473,
+        "textures": 24
       },
       "沈阳": {
-        "calls": 179,
-        "triangles": 10702,
-        "geometries": 465,
-        "textures": 23
+        "calls": 178,
+        "triangles": 10690,
+        "geometries": 473,
+        "textures": 24
       },
       "铁路": {
-        "calls": 137,
-        "triangles": 14136,
-        "geometries": 465,
-        "textures": 23
+        "calls": 145,
+        "triangles": 17208,
+        "geometries": 473,
+        "textures": 24
       },
       "鞍山": {
-        "calls": 56,
-        "triangles": 6272,
-        "geometries": 465,
-        "textures": 23
+        "calls": 64,
+        "triangles": 9344,
+        "geometries": 473,
+        "textures": 24
       },
       "公路": {
         "calls": 155,
         "triangles": 12956,
-        "geometries": 465,
-        "textures": 23
+        "geometries": 473,
+        "textures": 24
       },
       "抚顺俯冲": {
         "calls": 78,
         "triangles": 10198,
-        "geometries": 465,
-        "textures": 23
+        "geometries": 473,
+        "textures": 24
       }
     }
   }

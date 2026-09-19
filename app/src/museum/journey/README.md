@@ -22,8 +22,14 @@ Scroll to Direct：用户滚动 = 推进整部电影的 Playhead。
    世界运动（scroll-linked）不依赖时间累积的时间轴，反向滚动天然成立。
    需要时间驱动的小循环（车轮、粒子、吊钩摆动）只用 `ctx.time/dt` 做局部叠加，
    不允许主导镜头节奏。
-   ⚠️ 定位式调用（Debug `setShot` / Explore 返回）`dt = 0`：
-   `damp` 在 dt=0 时是恒等映射，Set 里的 damp 一律要用「dt=0 直达目标」的包装（各 Set 顶部已内置）。
+   三条从反向走查里换来的硬要求：
+   - ⚠️ **不要写「只在某个镜头/区间内才更新」的状态。** 区间外必须回到一个确定的默认值，
+     否则反向滚动与 `setShot` 跳转读到的是「上一次路过时的残留」。
+     已按此修：钢坯 / 钢板 / 列车 / 卡车 / 天吊 / 工人主光（全部改为 `xxxAt(progress)`）。
+   - ⚠️ **状态只存进度驱动的主值，持续抖动只叠加在渲染上。**
+     `crane.position.z = state.craneZ + sin(time*0.35)*1.4`，而不是把抖动写进 `state.craneZ`。
+   - ⚠️ 定位式调用（Debug `setShot` / Explore 返回）`dt = 0`：
+     `damp` 在 dt=0 时是恒等映射，Set 里的 damp 一律要用「dt=0 直达目标」的包装（各 Set 顶部已内置）。
 
 4. **相机单一所有权。**
    cinematic → `CinematicDirector.applyCamera`；explore → `OrbitControls`；
@@ -63,8 +69,19 @@ Scroll to Direct：用户滚动 = 推进整部电影的 Playhead。
 
 ## 验收
 
-    python3 tools/verify_journey.py http://127.0.0.1:5173 [--screenshots]
+    python3 tools/verify_journey.py http://127.0.0.1:5173 [--screenshots]   # 27 项：分镜/衔接/取景/性能/旧路由
+    python3 tools/walkthrough_cinematic.py http://127.0.0.1:5173           # 25 项：人工三遍的可复现版
 
-自动 27 项断言 + 人工三遍（Pass A 纯看 / Pass B 全互动 / Pass C 反向滚）。
+`walkthrough_cinematic.py` 覆盖手册 §70 要求的人工三遍：
+- **Pass A** 真实滚动走查（`window.scrollTo`，不是跳转）：镜头链条单调、无凭空瞬移、七章节全覆盖
+- **Pass B** 全交互端到端：C620-1 四步（拆解 → 结构 → 组装启动 → 手轮进给 → 历史）+ 工作台（图纸 / 卡尺）
+- **Pass C** 反向滚动：正反向能回到同一进度，且同一进度上镜头 / 相机 / scroll-linked 状态一致
+
+⚠️ **无头环境的两个已知限制**（真实浏览器不受影响，验收脚本已兜底）：
+1. 页面跑一会儿会被当作后台标签节流，rAF 与 gsap ticker 停摆 → `ScrollTrigger` 的 progress 冻结。
+   脚本用 `__liaoji.tick()` 补帧。
+2. `ScrollTrigger` 在节流下会用它缓存的旧滚动位置**把 progress 写回**。
+   脚本用 `__liaoji.syncProgress()`（产品自己的 syncFromScroll 路径）从真实 `scrollY` 取值。
+
 设计意图与逐镜说明：`spec/LIAOJI-CINEMATIC-STORYBOARD.md`。
 资产台账：`spec/LIAOJI-ASSET-MANIFEST.md`。

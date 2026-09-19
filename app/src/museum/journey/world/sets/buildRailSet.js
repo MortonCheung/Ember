@@ -14,9 +14,23 @@
 
 import * as THREE from 'three';
 import { WorldBuilder, createWorker, PALETTE } from '../primitives.js';
+import { SHOT_RANGES } from '../../storyboard.js';
 import { createWallText } from '../textPlates.js';
 
 const lerp = THREE.MathUtils.lerp;
+
+/* 列车位置写成 progress 的纯函数。
+   用「只在 rail 章节才更新」的 guard，反向滚动时读到的会是上一次路过时的残留值。 */
+const RAIL_START = SHOT_RANGES.find((r) => r.id === 'TR_01_TRACK')?.start ?? 0.366;
+const RAIL_END = SHOT_RANGES.find((r) => r.id === 'TR_04_ORE')?.end ?? 0.465;
+
+function trainZAt(progress) {
+  const span = Math.max(RAIL_END - RAIL_START, 1e-6);
+  const t = THREE.MathUtils.clamp((progress - RAIL_START) / span, 0, 1);
+  return lerp(-280, -375, THREE.MathUtils.smoothstep(
+    THREE.MathUtils.clamp((t - 0.08) / 0.92, 0, 1), 0, 1,
+  ));
+}
 
 export function buildRailSet({ reducedMotion = false } = {}) {
   const b = new WorldBuilder('set_rail');
@@ -218,18 +232,13 @@ export function buildRailSet({ reducedMotion = false } = {}) {
   const state = { wheelSpin: 0, steam: 0, signal: 0, trainZ: -280 };
 
   function update(frame, ctx) {
-    const { shot, localT, chapterLocalT } = frame;
+    const { shot, localT, progress } = frame;
     const time = ctx?.time ?? 0;
     const dt = ctx?.dt ?? 0;
 
-    // 本 Set 会为相邻章节预热而保持可见，但运动只在自己的章节里推进，
-    // 否则 chapterLocalT 会是别的章节的读数，列车会瞬移。
-    if (shot.chapter !== 'rail') return;
-
     // 列车尾部 Z：整段铁路里从 -280 行驶到 -375，Camera 从后方一路追上。
-    const railT = THREE.MathUtils.clamp(chapterLocalT, 0, 1);
-    const targetZ = lerp(-280, -375, THREE.MathUtils.smoothstep(railT, 0.08, 1));
-    state.trainZ = targetZ;
+    // 由 progress 直接给出，不依赖「此刻是否正好在 rail 章节」。
+    state.trainZ = trainZAt(progress);
     parts.train.position.z = state.trainZ;
 
     // 车轮：与行驶同步，反向滚动时随之反向。
@@ -273,5 +282,9 @@ export function buildRailSet({ reducedMotion = false } = {}) {
     }
   }
 
-  return { builder: b, group: b.group, parts, id: 'rail', update };
+  function probe() {
+    return { trainZ: state.trainZ, wheelSpin: state.wheelSpin };
+  }
+
+  return { builder: b, group: b.group, parts, id: 'rail', update, probe };
 }

@@ -12,6 +12,8 @@
    ============================================================ */
 
 import * as THREE from 'three';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SHOTS } from '../storyboard.js';
 import { CinematicDirector } from '../CinematicDirector.js';
 import { samplePath } from '../CameraRig.js';
@@ -168,6 +170,51 @@ export function createJourneyDebug(experience) {
     showPaths(visible = true) {
       pathGroup.visible = Boolean(visible);
       return pathGroup.visible;
+    },
+    /** 从真实 window.scrollY 重新同步一次进度。
+        走的是产品自己的路径（JourneyController.syncFromScroll），
+        也就是 Explore 退出时用的那条 —— 只读 scrollY，不写滚动位置。
+        无头环境下 ScrollTrigger 的 ticker 会被节流，需要它兜底。 */
+    syncProgress() {
+      experience.journeyController?.syncFromScroll(false);
+      return experience.journeyController?.rawProgress ?? null;
+    },
+    /** 把画面推到「当前进度的稳态」。
+        阻尼状态（炉温、门、钢板…）在真实浏览器里滚动停下后总会收敛到这个值；
+        验收比对一个确定性的稳态，而不是「你读数那一刻恰好追到哪」。
+        走 applyProgress（dt=0 → 所有 damp 直达目标），不经过 ScrollTrigger。 */
+    settle() {
+      const controller = experience.journeyController;
+      controller.visualProgress = controller.rawProgress;
+      experience.applyProgress(controller.rawProgress);
+      return controller.rawProgress;
+    },
+    /** 手动推帧。
+        无头浏览器会把跑了一会儿的页面当作后台标签节流，rAF 与 gsap ticker 停摆，
+        ScrollTrigger 的 progress 就冻结在最后一个 tick —— 真实浏览器不会这样。
+        自动验收里用它在每次真实滚动之后补几帧，让「真实 scrollY → progress」这条
+        链路仍然按真实路径走完。 */
+    tick(steps = 8, dt = 1 / 60) {
+      const now = performance.now();
+      let error = null;
+      for (let i = 0; i < steps; i += 1) {
+        try {
+          ScrollTrigger.update();
+          experience.update(now, dt);
+          gsap.ticker.tick();
+        } catch (caught) {
+          // 不能静默吞掉：update 抛异常时世界根本没推进，
+          // 而断言读的仍是纯函数算出来的值，会得到「一切正常」的假象。
+          error = String((caught && caught.stack) || caught);
+          break;
+        }
+      }
+      return { shot: experience.state.frame?.shot?.id ?? null, error };
+    },
+    /** 跨章节关键状态（门开度、列车位置、炉温、卡车位置、电铲循环…）
+        用于证明反向滚动时动画不崩坏。 */
+    worldState() {
+      return experience.world?.probe?.() ?? null;
     },
     /** 拾取画面中心（或指定 NDC 坐标）的物体，定位“这挡住画面的是什么”。 */
     pickCenter(ndcX = 0, ndcY = 0) {

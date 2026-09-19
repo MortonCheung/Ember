@@ -11,10 +11,61 @@
 
 import * as THREE from 'three';
 import { WorldBuilder, createWorker, PALETTE } from '../primitives.js';
+import { SHOT_RANGES } from '../../storyboard.js';
 import { createWallText, createNameplate, createCallout } from '../textPlates.js';
 
 const lerp = THREE.MathUtils.lerp;
 const smooth = THREE.MathUtils.smoothstep;
+
+/* 蒙太奇道具的位置写成 progress 的纯函数。
+   如果只在「当前镜头等于 AS_07C」时才赋值，跳转定位、反向滚动、Debug setShot
+   都会读到上一次路过时的残留值 —— 状态就不再是 progress 的纯函数了。 */
+function rangeOf(shotId) {
+  return SHOT_RANGES.find((range) => range.id === shotId) ?? null;
+}
+const BILLET_RANGE = rangeOf('AS_07C_BILLET');
+const PLATE_RANGE = rangeOf('AS_07E_PLATE');
+
+function localIn(range, progress) {
+  if (!range) return -1;
+  const span = range.end - range.start;
+  if (span <= 0) return -1;
+  return (progress - range.start) / span;
+}
+
+function billetXAt(progress) {
+  const local = localIn(BILLET_RANGE, progress);
+  if (local <= 0) return -12;
+  if (local >= 1) return -4;
+  return lerp(-12, -4, smooth(THREE.MathUtils.clamp((local - 0.08) / 0.8, 0, 1), 0, 1));
+}
+
+function billetZAt(progress) {
+  const local = localIn(BILLET_RANGE, progress);
+  if (local <= 0) return -684;
+  if (local >= 1) return -688;
+  return lerp(-684, -688, local);
+}
+
+const TRUCK_RANGE = SHOT_RANGES.find((range) => range.id === 'AS_08_TRUCK') ?? null;
+const ROAD_START_APPROX = SHOT_RANGES.find((range) => range.id === 'RD_01_DEPART')?.start ?? 0.694;
+
+/** 钢板 → 车辆 的成形度：全域确定，区间外分别是「还没成形」与「已成形」。 */
+function truckFormAt(progress) {
+  if (!TRUCK_RANGE) return 0;
+  const span = Math.max(TRUCK_RANGE.end - TRUCK_RANGE.start, 1e-6);
+  const local = (progress - TRUCK_RANGE.start) / span;
+  if (local <= 0) return 0;
+  if (local >= 1) return 1;
+  return smooth(THREE.MathUtils.clamp((local - 0.05) / 0.7, 0, 1), 0, 1);
+}
+
+function plateZAt(progress) {
+  const local = localIn(PLATE_RANGE, progress);
+  if (local <= 0) return -706;
+  if (local >= 1) return -702.05;
+  return lerp(-706, -702.05, smooth(THREE.MathUtils.clamp(local / 0.85, 0, 1), 0, 1));
+}
 // 定位式调用（dt=0：Debug setShot / Explore 返回）必须一步到位——
 // damp 在 dt=0 时是恒等映射，会让门、炉温这类状态停在初始值。
 const damp = (current, target, lambda, dt) => (
@@ -337,7 +388,7 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
   };
 
   function update(frame, ctx) {
-    const { shot, localT, chapterLocalT } = frame;
+    const { shot, localT, chapterLocalT, progress } = frame;
     const time = ctx?.time ?? 0;
     const dt = ctx?.dt ?? 0;
     const id = shot.id;
@@ -423,6 +474,17 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
       parts.tapLight.intensity = damp(parts.tapLight.intensity, 1.2, 4, dt);
     }
 
+    /* 钢板 → 车辆：成形度每帧由 progress 决定，位置由 Road Set 负责。 */
+    {
+      const truck = ctx?.shared?.truck;
+      if (truck) {
+        const form = truckFormAt(progress);
+        truck.setForm(form);
+        truck.group.rotation.y = 0;
+        truck.group.visible = form > 0.02 || progress >= ROAD_START_APPROX;
+      }
+    }
+
     /* 蒙太奇 CUT 1 倾倒 */
     if (id === 'AS_07A_POUR') {
       const tilt = smooth(THREE.MathUtils.clamp((localT - 0.1) / 0.62, 0, 1), 0, 1);
@@ -449,12 +511,11 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
       parts.sparks.material.opacity = damp(parts.sparks.material.opacity, 0, 8, dt);
     }
 
-    /* 蒙太奇 CUT 3 钢坯推进 */
-    if (id === 'AS_07C_BILLET') {
-      state.billetX = lerp(-12, -4, smooth(THREE.MathUtils.clamp((localT - 0.08) / 0.8, 0, 1), 0, 1));
-      parts.billet.position.x = state.billetX;
-      parts.billet.position.z = lerp(-684, -688, localT);
-    } else {
+    /* 蒙太奇 CUT 3 钢坯推进（进度驱动，不依赖「此刻是否正好在 AS_07C」） */
+    state.billetX = billetXAt(progress);
+    parts.billet.position.x = state.billetX;
+    parts.billet.position.z = billetZAt(progress);
+    if (id !== 'AS_07C_BILLET') {
       parts.billetMat.emissiveIntensity = damp(parts.billetMat.emissiveIntensity, 0.5, 5, dt);
     }
 
@@ -466,9 +527,9 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
       parts.billetMat.emissiveIntensity = 1.3;
     }
 
-    /* 蒙太奇 CUT 5 红热钢板冲向 Camera 并填满画面 */
+    /* 蒙太奇 CUT 5 红热钢板冲向 Camera 并填满画面（同样进度驱动） */
+    state.plateZ = plateZAt(progress);
     if (id === 'AS_07E_PLATE') {
-      state.plateZ = lerp(-706, -702.05, smooth(THREE.MathUtils.clamp(localT / 0.85, 0, 1), 0, 1));
       parts.plate.position.z = state.plateZ;
       parts.plateMat.emissiveIntensity = 1.1 + Math.sin(time * 8) * 0.2;
     } else if (id === 'AS_08_TRUCK') {
@@ -480,14 +541,6 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
       );
       parts.plateMat.emissiveIntensity = lerp(1.1, 0.12, form);
       parts.plateMat.color.setHex(0xb03c14).lerp(new THREE.Color(0x4c5a4e), form);
-      // 车轮落下由 Road Set 的卡车接管，这里只把钢的颜色交出去。
-      const truck = ctx?.shared?.truck;
-      if (truck) {
-        truck.group.visible = true;
-        truck.setForm(form);
-        truck.group.position.set(-8, 0, -700);
-        truck.group.rotation.y = 0;
-      }
     } else {
       parts.plate.visible = !id.startsWith('RD');
       if (!id.startsWith('RD')) {
@@ -502,5 +555,12 @@ export function buildAnshanSet({ reducedMotion = false } = {}) {
     }
   }
 
-  return { builder: b, group: b.group, parts, id: 'anshan', update };
+  function probe() {
+    return {
+      heat: state.heat, flow: state.flow, pour: state.pour,
+      billetX: state.billetX, plateZ: state.plateZ, roll: state.roll,
+    };
+  }
+
+  return { builder: b, group: b.group, parts, id: 'anshan', update, probe };
 }

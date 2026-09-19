@@ -112,6 +112,15 @@ export function buildCinematicWorld(scene, renderer, { reducedMotion = false } =
     }
   }
 
+  /** 跨章节关键状态读数：Pass C（反向滚动）靠它证明动画没有崩坏。 */
+  function probe() {
+    const out = { _active: [...activeStages] };
+    for (const set of sets) {
+      if (typeof set.probe === 'function') out[set.id] = set.probe();
+    }
+    return out;
+  }
+
   /** 强制把某个章节的可见性打开（Debug 定位 / Explore 返回时用）。 */
   function ensureStage(chapterId) {
     const set = byChapter.get(chapterId);
@@ -137,6 +146,7 @@ export function buildCinematicWorld(scene, renderer, { reducedMotion = false } =
     heroWorker: byChapter.get('fushun').parts.heroWorker,
     update,
     ensureStage,
+    probe,
     dispose,
   };
 }

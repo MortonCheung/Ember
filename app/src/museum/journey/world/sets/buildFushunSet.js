@@ -15,6 +15,7 @@
 
 import * as THREE from 'three';
 import { WorldBuilder, createWorker, PALETTE } from '../primitives.js';
+import { SHOT_RANGES } from '../../storyboard.js';
 import { createWallText, createNameplate } from '../textPlates.js';
 
 const lerp = THREE.MathUtils.lerp;
@@ -24,6 +25,21 @@ const smooth = THREE.MathUtils.smoothstep;
 const damp = (current, target, lambda, dt) => (
   dt > 0 ? THREE.MathUtils.damp(current, target, lambda, dt) : target
 );
+
+/* 落到工人脚边的那束暖光：写成 progress 的纯函数。
+   用 damp 的话，读数会取决于「什么时候看」而不是「看到哪里」，
+   反向滚动与跳转定位就会得到不同结果。 */
+const LAND_RANGE = SHOT_RANGES.find((range) => range.id === 'FS_05_LAND') ?? null;
+const GAZE_RANGE = SHOT_RANGES.find((range) => range.id === 'FS_06_GAZE') ?? null;
+
+function heroGlowAt(progress) {
+  const start = LAND_RANGE
+    ? LAND_RANGE.start + (LAND_RANGE.end - LAND_RANGE.start) * 0.45
+    : 0.9;
+  const end = GAZE_RANGE ? GAZE_RANGE.end : 0.95;
+  if (end <= start) return progress >= end ? 1 : 0;
+  return THREE.MathUtils.clamp((progress - start) / (end - start), 0, 1);
+}
 
 /* 阶梯剖面：19 级，每级 6.05m 高、6.74m 宽。确定性生成，不随机。 */
 function buildPitProfile() {
@@ -239,7 +255,7 @@ export function buildFushunSet({ reducedMotion = false } = {}) {
   const state = { shovel: 0.05, heroGlow: 0 };
 
   function update(frame, ctx) {
-    const { shot, localT, chapterLocalT } = frame;
+    const { shot, localT, chapterLocalT, progress } = frame;
     const time = ctx?.time ?? 0;
     const dt = ctx?.dt ?? 0;
     const id = shot.id;
@@ -264,8 +280,7 @@ export function buildFushunSet({ reducedMotion = false } = {}) {
     parts.shovel.root.rotation.y = -2.3 + swing * 0.9;
 
     /* 落在工人脚边之后：给一道极轻的暖光，把人从矿坑的冷灰里拉出来 */
-    const atHero = id === 'FS_05_LAND' || id === 'FS_06_GAZE' || id.startsWith('EN_01');
-    state.heroGlow = damp(state.heroGlow, atHero ? 1 : 0, 2.4, dt);
+    state.heroGlow = heroGlowAt(progress);
     parts.heroLight.intensity = state.heroGlow * 5.0;
 
     /* 结尾：工人抬头，Camera 顺着他的视线往上；这里只保证他真的在抬头。 */
@@ -288,5 +303,9 @@ export function buildFushunSet({ reducedMotion = false } = {}) {
     });
   }
 
-  return { builder: b, group: b.group, parts, id: 'fushun', update };
+  function probe() {
+    return { shovel: state.shovel, heroGlow: state.heroGlow };
+  }
+
+  return { builder: b, group: b.group, parts, id: 'fushun', update, probe };
 }

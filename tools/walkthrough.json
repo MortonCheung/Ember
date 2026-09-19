@@ -1,0 +1,610 @@
+{
+  "rows": [
+    {
+      "group": "Pass A",
+      "name": "每一次滚动都真的发生了（scrollY 到位）",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass A",
+      "name": "全程 Camera 读数有限",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass A",
+      "name": "镜头链条单调推进",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass A",
+      "name": "同一镜头内无凭空瞬移",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass A",
+      "name": "滚动走查覆盖 ≥ 20 个镜头（实到 35）",
+      "ok": true,
+      "detail": "covered=35/48"
+    },
+    {
+      "group": "Pass A",
+      "name": "七个章节全部被真实滚动走到",
+      "ok": true,
+      "detail": "chapters=['anshan', 'ending', 'fushun', 'opening', 'rail', 'road', 'shenyang']"
+    },
+    {
+      "group": "Pass A",
+      "name": "全程 draw call < 420",
+      "ok": true,
+      "detail": "worst=215"
+    },
+    {
+      "group": "Pass B",
+      "name": "C620-1 进入并展开控制台",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "group": "Pass B",
+      "name": "步骤一：进入即自动拆解",
+      "ok": true,
+      "detail": "explode=1"
+    },
+    {
+      "group": "Pass B",
+      "name": "步骤一：点部件出结构说明",
+      "ok": true,
+      "detail": "把电机的转速变成主轴的转速。卡盘夹住工件，带着它转。"
+    },
+    {
+      "group": "Pass B",
+      "name": "步骤二：组装回位",
+      "ok": true,
+      "detail": "explode=0"
+    },
+    {
+      "group": "Pass B",
+      "name": "步骤三：启动成功",
+      "ok": true,
+      "detail": "running=1"
+    },
+    {
+      "group": "Pass B",
+      "name": "步骤三：手轮进料到满",
+      "ok": true,
+      "detail": "feed=1"
+    },
+    {
+      "group": "Pass B",
+      "name": "步骤四：历史信息出现",
+      "ok": true,
+      "detail": " 04 / 04 C620-1 C620-1 普通车床 1955 · 沈阳第一机床厂 当年车间里最常见的机型之一。它车过"
+    },
+    {
+      "group": "Pass B",
+      "name": "退出后回到 journey 且机床复位",
+      "ok": true,
+      "detail": "mode=journey"
+    },
+    {
+      "group": "Pass B",
+      "name": "工作台：图纸可展开",
+      "ok": true,
+      "detail": "drawing=0.999995"
+    },
+    {
+      "group": "Pass B",
+      "name": "工作台：卡尺可抬起",
+      "ok": true,
+      "detail": "caliper=1"
+    },
+    {
+      "group": "Pass B",
+      "name": "工作台退出并复位",
+      "ok": true,
+      "detail": "mode=journey"
+    },
+    {
+      "group": "Pass C",
+      "name": "正反向滚动都真的发生了（scrollY 到位）",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass C",
+      "name": "真实滚动反向能回到同一进度（±0.001）",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass C",
+      "name": "同一进度上镜头一致",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass C",
+      "name": "同一进度上相机位置一致（<0.05m）",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "Pass C",
+      "name": "同一进度上 scroll-linked 动画状态一致（<0.05）",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "收尾",
+      "name": "三遍全程零 console error",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "group": "收尾",
+      "name": "全程 world.update 无异常",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "readings": {
+    "coveredShots": 35,
+    "chaptersSeen": [
+      "anshan",
+      "ending",
+      "fushun",
+      "opening",
+      "rail",
+      "road",
+      "shenyang"
+    ],
+    "passA_track": [
+      {
+        "ratio": 0.0,
+        "shot": "OP_01_SWITCH",
+        "chapter": "opening",
+        "localT": 0,
+        "progress": 0
+      },
+      {
+        "ratio": 0.025,
+        "shot": "OP_03_SPINDLE",
+        "chapter": "opening",
+        "localT": 0.378,
+        "progress": 0.0245
+      },
+      {
+        "ratio": 0.05,
+        "shot": "OP_05_IRON",
+        "chapter": "opening",
+        "localT": 0.918,
+        "progress": 0.0493
+      },
+      {
+        "ratio": 0.075,
+        "shot": "OP_08_TITLE",
+        "chapter": "opening",
+        "localT": 0.723,
+        "progress": 0.0745
+      },
+      {
+        "ratio": 0.1,
+        "shot": "SY_01_ENTER",
+        "chapter": "shenyang",
+        "localT": 0.256,
+        "progress": 0.0995
+      },
+      {
+        "ratio": 0.125,
+        "shot": "SY_01_ENTER",
+        "chapter": "shenyang",
+        "localT": 0.997,
+        "progress": 0.1233
+      },
+      {
+        "ratio": 0.15,
+        "shot": "SY_02_ALIVE",
+        "chapter": "shenyang",
+        "localT": 0.708,
+        "progress": 0.149
+      },
+      {
+        "ratio": 0.175,
+        "shot": "SY_03_WALLTEXT",
+        "chapter": "shenyang",
+        "localT": 0.499,
+        "progress": 0.1745
+      },
+      {
+        "ratio": 0.2,
+        "shot": "SY_04_REVEAL",
+        "chapter": "shenyang",
+        "localT": 0.277,
+        "progress": 0.1985
+      },
+      {
+        "ratio": 0.225,
+        "shot": "SY_05_NOTICE",
+        "chapter": "shenyang",
+        "localT": 0.104,
+        "progress": 0.224
+      },
+      {
+        "ratio": 0.25,
+        "shot": "SY_06_WALK",
+        "chapter": "shenyang",
+        "localT": 0.114,
+        "progress": 0.2495
+      },
+      {
+        "ratio": 0.275,
+        "shot": "SY_06_WALK",
+        "chapter": "shenyang",
+        "localT": 0.589,
+        "progress": 0.2733
+      },
+      {
+        "ratio": 0.3,
+        "shot": "SY_07_BENCH",
+        "chapter": "shenyang",
+        "localT": 0.132,
+        "progress": 0.2984
+      },
+      {
+        "ratio": 0.325,
+        "shot": "SY_07_BENCH",
+        "chapter": "shenyang",
+        "localT": 0.866,
+        "progress": 0.3235
+      },
+      {
+        "ratio": 0.35,
+        "shot": "SY_08_EXIT",
+        "chapter": "shenyang",
+        "localT": 0.509,
+        "progress": 0.3495
+      },
+      {
+        "ratio": 0.375,
+        "shot": "TR_01_TRACK",
+        "chapter": "rail",
+        "localT": 0.205,
+        "progress": 0.3743
+      },
+      {
+        "ratio": 0.4,
+        "shot": "TR_02_TRAIN",
+        "chapter": "rail",
+        "localT": 0.382,
+        "progress": 0.3994
+      },
+      {
+        "ratio": 0.425,
+        "shot": "TR_03_MOTION",
+        "chapter": "rail",
+        "localT": 0.31,
+        "progress": 0.4243
+      },
+      {
+        "ratio": 0.45,
+        "shot": "TR_04_ORE",
+        "chapter": "rail",
+        "localT": 0.128,
+        "progress": 0.4495
+      },
+      {
+        "ratio": 0.475,
+        "shot": "AS_01_SCALE",
+        "chapter": "anshan",
+        "localT": 0.166,
+        "progress": 0.4748
+      },
+      {
+        "ratio": 0.5,
+        "shot": "AS_02_CHARGE",
+        "chapter": "anshan",
+        "localT": 0.055,
+        "progress": 0.498
+      },
+      {
+        "ratio": 0.525,
+        "shot": "AS_03_INNER",
+        "chapter": "anshan",
+        "localT": 0.044,
+        "progress": 0.524
+      },
+      {
+        "ratio": 0.55,
+        "shot": "AS_03_INNER",
+        "chapter": "anshan",
+        "localT": 0.879,
+        "progress": 0.5491
+      },
+      {
+        "ratio": 0.575,
+        "shot": "AS_04_REDUCE",
+        "chapter": "anshan",
+        "localT": 0.711,
+        "progress": 0.5742
+      },
+      {
+        "ratio": 0.6,
+        "shot": "AS_05_MELT",
+        "chapter": "anshan",
+        "localT": 0.691,
+        "progress": 0.5995
+      },
+      {
+        "ratio": 0.625,
+        "shot": "AS_06_TAP",
+        "chapter": "anshan",
+        "localT": 0.59,
+        "progress": 0.6235
+      },
+      {
+        "ratio": 0.65,
+        "shot": "AS_07C_BILLET",
+        "chapter": "anshan",
+        "localT": 0.159,
+        "progress": 0.6496
+      },
+      {
+        "ratio": 0.675,
+        "shot": "AS_08_TRUCK",
+        "chapter": "anshan",
+        "localT": 0.046,
+        "progress": 0.6735
+      },
+      {
+        "ratio": 0.7,
+        "shot": "AS_08_TRUCK",
+        "chapter": "anshan",
+        "localT": 0.9,
+        "progress": 0.6992
+      },
+      {
+        "ratio": 0.725,
+        "shot": "RD_01_DEPART",
+        "chapter": "road",
+        "localT": 0.83,
+        "progress": 0.7239
+      },
+      {
+        "ratio": 0.75,
+        "shot": "RD_02_TRANSIT",
+        "chapter": "road",
+        "localT": 0.616,
+        "progress": 0.7493
+      },
+      {
+        "ratio": 0.775,
+        "shot": "RD_03_REVEAL",
+        "chapter": "road",
+        "localT": 0.36,
+        "progress": 0.7733
+      },
+      {
+        "ratio": 0.8,
+        "shot": "FS_01_RIM",
+        "chapter": "fushun",
+        "localT": 0.289,
+        "progress": 0.7995
+      },
+      {
+        "ratio": 0.825,
+        "shot": "FS_02_DIVE_A",
+        "chapter": "fushun",
+        "localT": 0.298,
+        "progress": 0.8244
+      },
+      {
+        "ratio": 0.85,
+        "shot": "FS_03_DIVE_B",
+        "chapter": "fushun",
+        "localT": 0.252,
+        "progress": 0.8493
+      },
+      {
+        "ratio": 0.875,
+        "shot": "FS_04_DIVE_C",
+        "chapter": "fushun",
+        "localT": 0.238,
+        "progress": 0.874
+      },
+      {
+        "ratio": 0.9,
+        "shot": "FS_05_LAND",
+        "chapter": "fushun",
+        "localT": 0.312,
+        "progress": 0.899
+      },
+      {
+        "ratio": 0.925,
+        "shot": "FS_06_GAZE",
+        "chapter": "fushun",
+        "localT": 0.203,
+        "progress": 0.9243
+      },
+      {
+        "ratio": 0.95,
+        "shot": "FS_06_GAZE",
+        "chapter": "fushun",
+        "localT": 0.888,
+        "progress": 0.949
+      },
+      {
+        "ratio": 0.975,
+        "shot": "EN_02B_FLASH_CABLE",
+        "chapter": "ending",
+        "localT": 0.548,
+        "progress": 0.9742
+      },
+      {
+        "ratio": 1.0,
+        "shot": "EN_03_TITLE",
+        "chapter": "ending",
+        "localT": 0.98,
+        "progress": 0.9996
+      }
+    ],
+    "worstCalls": 215,
+    "latheRun": {
+      "entered": true,
+      "mode": "explore",
+      "consoleVisible": true,
+      "step1Text": " 01 / 04 拆解 · 结构 主轴箱 刀架 · 溜板 尾座 床身 点一个部件，看它在这台机床里负责什么。 组装并启动",
+      "partNote": "把电机的转速变成主轴的转速。卡盘夹住工件，带着它转。",
+      "explodeAfterEnter": 1,
+      "explodeAfterAssemble": 0,
+      "runningAfterStart": 1,
+      "hasFeedSlider": true,
+      "feedValue": 1,
+      "step4Text": " 04 / 04 C620-1 C620-1 普通车床 1955 · 沈阳第一机床厂 当年车间里最常见的机型之一。它车过的零件，装在了后来无数台机器上。 继续参观 ↓",
+      "archiveShown": true,
+      "afterMode": "journey",
+      "latheReset": {
+        "explode": 0,
+        "running": 0,
+        "feed": 0,
+        "spin": 8.95328305059624
+      }
+    },
+    "benchRun": {
+      "entered": true,
+      "drawing": 0.999995,
+      "caliper": 1,
+      "afterMode": "journey",
+      "benchReset": {
+        "drawing": 0,
+        "caliper": 0
+      }
+    },
+    "passC": [
+      {
+        "ratio": 0.96,
+        "progressForward": 0.96,
+        "progressBackward": 0.96,
+        "progressGap": 0.0,
+        "shotForward": "EN_01_ECHO",
+        "shotBackward": "EN_01_ECHO",
+        "cameraGap": 0.0,
+        "worstWorld": "fushun.heroGlow",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.88,
+        "progressForward": 0.88,
+        "progressBackward": 0.88,
+        "progressGap": 0.0,
+        "shotForward": "FS_04_DIVE_C",
+        "shotBackward": "FS_04_DIVE_C",
+        "cameraGap": 0.0,
+        "worstWorld": "road.truckZ",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.8,
+        "progressForward": 0.8,
+        "progressBackward": 0.8,
+        "progressGap": 0.0,
+        "shotForward": "FS_01_RIM",
+        "shotBackward": "FS_01_RIM",
+        "cameraGap": 0.0,
+        "worstWorld": "road.truckZ",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.72,
+        "progressForward": 0.72,
+        "progressBackward": 0.72,
+        "progressGap": 0.0,
+        "shotForward": "RD_01_DEPART",
+        "shotBackward": "RD_01_DEPART",
+        "cameraGap": 0.0,
+        "worstWorld": "anshan.heat",
+        "worstWorldGap": 0.0
+      },
+      {
+        "ratio": 0.62,
+        "progressForward": 0.62,
+        "progressBackward": 0.62,
+        "progressGap": 0.0,
+        "shotForward": "AS_06_TAP",
+        "shotBackward": "AS_06_TAP",
+        "cameraGap": 0.0,
+        "worstWorld": "rail.trainZ",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.52,
+        "progressForward": 0.52,
+        "progressBackward": 0.52,
+        "progressGap": 0.0,
+        "shotForward": "AS_02_CHARGE",
+        "shotBackward": "AS_02_CHARGE",
+        "cameraGap": 0.0,
+        "worstWorld": "rail.trainZ",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.4,
+        "progressForward": 0.4,
+        "progressBackward": 0.4,
+        "progressGap": 0.0,
+        "shotForward": "TR_02_TRAIN",
+        "shotBackward": "TR_02_TRAIN",
+        "cameraGap": 0.0,
+        "worstWorld": "shenyang.gateEntry",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.31,
+        "progressForward": 0.31,
+        "progressBackward": 0.31,
+        "progressGap": 0.0,
+        "shotForward": "SY_07_BENCH",
+        "shotBackward": "SY_07_BENCH",
+        "cameraGap": 0.0,
+        "worstWorld": "shenyang.gateEntry",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.22,
+        "progressForward": 0.22,
+        "progressBackward": 0.22,
+        "progressGap": 0.0,
+        "shotForward": "SY_04_REVEAL",
+        "shotBackward": "SY_04_REVEAL",
+        "cameraGap": 0.0,
+        "worstWorld": "shenyang.gateEntry",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.13,
+        "progressForward": 0.13,
+        "progressBackward": 0.13,
+        "progressGap": 0.0,
+        "shotForward": "SY_02_ALIVE",
+        "shotBackward": "SY_02_ALIVE",
+        "cameraGap": 0.0,
+        "worstWorld": "shenyang.gateEntry",
+        "worstWorldGap": 0
+      },
+      {
+        "ratio": 0.05,
+        "progressForward": 0.05,
+        "progressBackward": 0.05,
+        "progressGap": 0.0,
+        "shotForward": "OP_05_IRON",
+        "shotBackward": "OP_05_IRON",
+        "cameraGap": 0.0,
+        "worstWorld": "shenyang.gateEntry",
+        "worstWorldGap": 0
+      }
+    ]
+  }
+}

@@ -479,6 +479,13 @@ export function buildShenyangSet({ reducedMotion = false } = {}) {
   parts.hallKey = hallKey;
 
   /* ---------------- 章节运动（scroll-linked，可反向） ---------------- */
+  /* 天吊行程：由 progress 全域确定。区间之外不是「保留上次值」，而是回到起点 ——
+     否则反向滚动与跳转读到的会是历史残留。 */
+  function craneZAt(progress) {
+    if (progress <= 0.115 || progress >= 0.44) return -62;
+    return THREE.MathUtils.lerp(-62, -132, THREE.MathUtils.clamp((progress - 0.115) / 0.3, 0, 1));
+  }
+
   const state = {
     craneZ: -68,
     hookSwing: 0,
@@ -524,20 +531,22 @@ export function buildShenyangSet({ reducedMotion = false } = {}) {
     if (darkness) darkness.visible = state.gateEntry < 0.35;
 
     /* 天吊：SY-02 起沿轨道横移，吊钩摆动。用户向前走的过程中世界一直有事情发生。 */
+    // 状态只存「进度驱动的主值」，持续晃动只叠加在渲染上。
+    // 混在一起会让读数取决于「什么时候看」，反向滚动就无法证明一致性。
     const craneActive = progress > 0.115 && progress < 0.44;
+    state.craneZ = craneZAt(progress);
     if (craneActive) {
-      const travel = THREE.MathUtils.clamp((progress - 0.115) / 0.3, 0, 1);
-      state.craneZ = THREE.MathUtils.lerp(-62, -132, travel) + Math.sin(time * 0.35) * 1.4;
       state.hookSwing += dt * (0.8 + Math.sin(time * 0.4) * 0.3);
-      parts.crane.position.z = state.craneZ;
+      parts.crane.position.z = state.craneZ + Math.sin(time * 0.35) * 1.4;
       parts.craneHook.rotation.z = Math.sin(state.hookSwing) * 0.09;
       parts.craneHook.rotation.x = Math.cos(state.hookSwing * 0.7) * 0.05;
       // 浇包缓慢倾斜，铁水出现。
-      state.ladleTilt = damp(state.ladleTilt, 0.16 + Math.sin(time * 0.28) * 0.12, 2.2, dt);
-      parts.ladle.rotation.z = state.ladleTilt;
+      state.ladleTilt = damp(state.ladleTilt, 0.16, 2.2, dt);
+      parts.ladle.rotation.z = state.ladleTilt + Math.sin(time * 0.28) * 0.12;
       parts.ladleLight.intensity = 1.8 + Math.sin(time * 3.1) * 0.5;
       parts.hotMat.color.setHex(PALETTE.molten).multiplyScalar(0.85 + Math.sin(time * 2.6) * 0.15);
     } else {
+      parts.crane.position.z = state.craneZ;
       parts.ladleLight.intensity = damp(parts.ladleLight.intensity, 0.2, 3, dt);
     }
 
@@ -655,5 +664,17 @@ export function buildShenyangSet({ reducedMotion = false } = {}) {
     }
   }
 
-  return { builder: b, group: b.group, parts, id: 'shenyang', update };
+  function probe() {
+    return {
+      gateEntry: state.gateEntry,
+      gateExit: state.gateExit,
+      craneZ: state.craneZ,
+      ladleTilt: state.ladleTilt,
+      lathe: { explode: parts.lathe.state.explode, running: parts.lathe.state.running,
+               feed: parts.lathe.state.feed, spin: parts.lathe.state.spin },
+      bench: { drawing: parts.bench.state.drawing, caliper: parts.bench.state.caliper },
+    };
+  }
+
+  return { builder: b, group: b.group, parts, id: 'shenyang', update, probe };
 }
