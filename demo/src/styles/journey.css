@@ -1,0 +1,196 @@
+/* ============================================================
+   journey.css — 《辽迹》连续数字博物馆专用样式
+   所有选择器使用 liaoji 命名空间，避免影响旧页面。
+   ============================================================ */
+
+.page--journey {
+  display: block;
+  min-height: 100dvh;
+  background: #14171a;
+}
+
+.liaoji-experience {
+  --liaoji-ink: #f2eee6;
+  --liaoji-muted: rgba(242, 238, 230, .62);
+  --liaoji-accent: #c8673f;
+  position: relative;
+  min-height: 100dvh;
+  color: var(--liaoji-ink);
+  background: #14171a;
+}
+
+.liaoji-canvas-host,
+.liaoji-overlay {
+  position: fixed;
+  inset: 0;
+}
+
+.liaoji-canvas-host {
+  z-index: 1;
+  overflow: hidden;
+}
+
+.liaoji-canvas-host canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+.liaoji-overlay {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.liaoji-intro {
+  position: absolute;
+  left: clamp(24px, 7vw, 112px);
+  bottom: clamp(36px, 10vh, 112px);
+  max-width: min(720px, 80vw);
+  text-shadow: 0 2px 30px rgba(0, 0, 0, .35);
+}
+
+.liaoji-intro__kicker,
+.liaoji-intro__hint {
+  font-size: clamp(11px, .85vw, 13px);
+  letter-spacing: .18em;
+}
+
+.liaoji-intro__kicker {
+  color: var(--liaoji-accent);
+}
+
+.liaoji-intro h1 {
+  margin: .08em 0;
+  font-size: clamp(72px, 13vw, 188px);
+  line-height: .88;
+  letter-spacing: -.08em;
+  text-wrap: balance;
+}
+
+.liaoji-intro__subtitle {
+  color: var(--liaoji-muted);
+  font-size: clamp(18px, 2.1vw, 30px);
+  letter-spacing: .04em;
+}
+
+.liaoji-intro__hint {
+  display: inline-flex;
+  margin-top: clamp(28px, 5vh, 54px);
+  color: var(--liaoji-ink);
+}
+
+.liaoji-chapter {
+  position: absolute;
+  top: clamp(24px, 5vh, 56px);
+  left: clamp(24px, 5vw, 72px);
+  min-height: 4rem;
+}
+
+.liaoji-exhibit-marker,
+.liaoji-continue {
+  pointer-events: auto;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--liaoji-ink);
+}
+
+.liaoji-exhibit-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border: 1px solid rgba(242, 238, 230, .42);
+  background: rgba(20, 23, 26, .72);
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  letter-spacing: .12em;
+}
+
+.liaoji-exhibit-marker:hover,
+.liaoji-exhibit-marker:focus-visible {
+  border-color: var(--liaoji-accent);
+  background: rgba(20, 23, 26, .9);
+}
+
+.liaoji-continue {
+  position: absolute;
+  right: clamp(20px, 5vw, 72px);
+  bottom: clamp(20px, 5vh, 48px);
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--liaoji-accent);
+  letter-spacing: .08em;
+}
+
+.liaoji-status,
+.liaoji-fallback {
+  pointer-events: auto;
+}
+
+.liaoji-status {
+  position: absolute;
+  left: 24px;
+  bottom: 20px;
+  color: var(--liaoji-muted);
+  font-size: 13px;
+}
+
+.liaoji-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  background: #171b1f;
+}
+
+.liaoji-fallback p {
+  max-width: 48ch;
+  color: var(--liaoji-muted);
+}
+
+.liaoji-fallback a {
+  justify-self: center;
+  margin-top: 12px;
+  border-bottom: 1px solid var(--liaoji-accent);
+}
+
+.liaoji-scroll-track {
+  position: relative;
+  z-index: 0;
+  width: 1px;
+  height: 1100vh;
+  min-height: 1100dvh;
+  pointer-events: none;
+}
+
+.liaoji-experience[data-mode="explore"] .liaoji-canvas-host canvas,
+.liaoji-experience[data-mode="entering-explore"] .liaoji-canvas-host canvas,
+.liaoji-experience[data-mode="returning"] .liaoji-canvas-host canvas {
+  touch-action: none;
+}
+
+@media (max-width: 600px) {
+  .liaoji-intro {
+    max-width: calc(100vw - 48px);
+  }
+
+  .liaoji-intro h1 {
+    font-size: clamp(68px, 27vw, 116px);
+  }
+
+  .liaoji-intro__subtitle {
+    max-width: 12em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liaoji-exhibit-marker,
+  .liaoji-continue {
+    transition: none;
+  }
+}

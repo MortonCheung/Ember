@@ -8,6 +8,7 @@ import { renderHall } from './pages/hall.js';
 import { renderCast } from './pages/cast.js';
 import { renderEntrance } from './pages/entrance.js';     // Step 4：序厅
 import { renderHistory } from './pages/history.js';       // Step 4：通史馆长卷
+import { renderJourney } from './pages/journey.js';       // 辽迹：连续数字博物馆白盒
 
 const root = document.getElementById('app');
 
@@ -18,6 +19,7 @@ const PAGES = {
   cast: renderCast,
   entrance: renderEntrance,   // Step 4 §0：序厅（轻量三维单件场景）
   history: renderHistory,     // Step 4 §0：通史馆（2D 长卷，不做三维）
+  journey: renderJourney,
 };
 
 const TITLES = {
@@ -26,6 +28,7 @@ const TITLES = {
   cast: '亲手浇铸 · 中国工业博物馆数字展馆',
   entrance: '序厅 · 中国工业博物馆数字展馆',
   history: '通史馆 · 中国工业博物馆数字展馆',
+  journey: '辽迹 · 可触碰的辽宁工业记忆',
 };
 
 let activePage = null;
