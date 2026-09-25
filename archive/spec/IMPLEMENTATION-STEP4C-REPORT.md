@@ -153,7 +153,7 @@
 
 ## 9. 追加：通史馆结尾主按钮收尾（2026-09-18 当日第二次裁定后）
 
-> 起因：`spec/PROMPT-HISTORY-CTA-FIX.md` 的一处文案实现后，设计方回看发现**用词写错**——应为「观看铸造**馆**」，遂签发本追加。
+> 起因：`archive/spec/PROMPT-HISTORY-CTA-FIX.md` 的一处文案实现后，设计方回看发现**用词写错**——应为「观看铸造**馆**」，遂签发本追加。
 
 ### 9.1 代码改动（仅 `demo/src/js/pages/history.js`，2 处 token）
 
@@ -168,8 +168,8 @@
 ### 9.2 文档同步（同一处错字在全站 3 份规格里都有，一并订正）
 
 - `spec/ENTRANCE-HISTORY-SPEC.md`（现役规格）§2.2 表 8 行、§2.5 两处 → `观看铸造馆`
-- `spec/PROMPT-ENTRANCE-HISTORY.md` §① → `观看铸造馆`
-- `spec/PROMPT-HISTORY-CTA-FIX.md` 正文模板 / token 表 / C1 验收行 → `观看铸造馆`
+- `archive/spec/PROMPT-ENTRANCE-HISTORY.md` §① → `观看铸造馆`
+- `archive/spec/PROMPT-HISTORY-CTA-FIX.md` 正文模板 / token 表 / C1 验收行 → `观看铸造馆`
 
 全站（`demo/` + `spec/`）扫描旧串 **残留 0**。
 

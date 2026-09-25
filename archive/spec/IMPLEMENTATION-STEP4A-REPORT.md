@@ -1,6 +1,6 @@
 # Step 4A 实现自述 · 序厅视觉重修（`#/entrance`）
 
-> 依据 `spec/ENTRANCE-VISUAL-REVISION.md`（§2–§6 唯一依据）+ 形态基准 `design/S09-序厅形态与光影基准.png`。
+> 依据 `archive/spec/ENTRANCE-VISUAL-REVISION.md`（§2–§6 唯一依据）+ 形态基准 `design/S09-序厅形态与光影基准.png`。
 > 验收执行：`?debug=1`（必须在 `#` 之前，`/?debug=1#/entrance`）→ `window.__entrance.layout()` / `silhouette()`。
 > 本轮最终状态：**E1′–E4′ 12 项全过 · E5′ 20 点全过 · 回归门禁（通史馆/铸造馆/首页/375px）零回归**。
 

@@ -1,0 +1,57 @@
+/* ============================================================
+   tokens.css — 设计 Token
+   来源：Ardot 设计稿 726075513358995
+   规则：实现方不要改这里的值
+   ============================================================ */
+
+:root {
+  /* ===== 色彩 · Dark（默认） ===== */
+  --c-bg:         #0E1116;
+  --c-surface:    #171B21;
+  --c-surface-2:  #1F242B;
+  --c-line:       #2E3640;
+  --c-text:       #F2F4F7;
+  --c-text-muted: #8B939E;
+  --c-iron:       #E8663C;   /* 铁水橙 —— 唯一强调色 */
+  --c-steel:      #525D69;
+
+  /* ===== 间距 ===== */
+  --s1: 8px;
+  --s2: 16px;
+  --s3: 24px;
+  --s4: 32px;
+  --s6: 48px;
+  --s8: 64px;
+  --radius: 12px;
+
+  /* ===== 排版 ===== */
+  /* 中文/西文字体栈：优先 Web 字体，缺失时逐级回落到系统中文字体
+     （评委机器若无法访问 Google Fonts，必须能回落到苹方/微软雅黑，不能糊） */
+  --font-cn:  "Noto Sans SC", "Source Han Sans CN", "PingFang SC",
+              "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
+  --font-num: "Inter", "Helvetica Neue", Arial, system-ui, sans-serif;
+
+  --fs-display: clamp(36px, 3.4vw, 58px);  /* 64px 在 52% 左栏排不下两行，与设计方确认后用 clamp */
+  --fs-h1:      44px;
+  --fs-h2:      28px;
+  --fs-h3:      18px;
+  --fs-body:    15px;
+  --fs-caption: 12px;
+  --fs-micro:   11px;
+
+  /* ===== 布局 ===== */
+  --page-max:   1440px;
+  --topbar-h:   72px;
+  --hud-h:      56px;
+}
+
+[data-theme="light"] {
+  --c-bg:         #F6F5F3;
+  --c-surface:    #FFFFFF;
+  --c-surface-2:  #EFEDE9;
+  --c-line:       #DAD7D3;
+  --c-text:       #181C21;
+  --c-text-muted: #6B727B;
+  --c-iron:       #C4441F;
+  --c-steel:      #8B939E;
+}

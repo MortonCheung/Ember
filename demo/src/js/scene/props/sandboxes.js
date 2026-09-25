@@ -13,8 +13,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from '../merge.js';
 
-const SAND = 0x3A3532;   // §2.3 深褐灰
-const SPRUE = 0x2E2A27;  // 浇口杯略深一档
+const SAND = 0x4A423A;   // §2.3 深褐灰（W3 Q3.2：0x3A3532 → 0x4A423A 提亮偏暖，与地坪 0x23282F 拉开层次）
+const SPRUE = 0x3A342F;  // 浇口杯略深一档（W3 Q3.2：0x2E2A27 → 0x3A342F）
 
 // 阵列布局：3 列（x）× 4 排（z），间距 2.4m
 const COLS = 3;
@@ -46,10 +46,21 @@ function makeUpperGeometry() {
     pin.translate(dx, 0.24, 0);
     geos.push(pin);
   }
+  // W3 Q3.2：销孔指示（与下箱 2 枚定位销 (±0.65, ±0.48) 对齐的箱耳衬套，底面略凸出）
+  for (const [dx, dz] of [[0.65, 0.48], [-0.65, -0.48]]) {
+    const bush = new THREE.CylinderGeometry(0.055, 0.055, 0.06, 10);
+    bush.translate(dx, -0.20, dz);
+    geos.push(bush);
+  }
   return mergeGeometries(geos);
 }
 
-/** C2：下箱 = 箱体 + 定位销 ×2（分型面对角） */
+/** C2：下箱 = 箱体 + 定位销 ×2（分型面对角）
+ *  W3 Q3.2 界内细化：加强肋 ×4 / 合箱法兰 / 砂型顶面型腔内凹 + 凸台 ×2。
+ *  ⚠️ 硬约束（VISUAL-REFINE-SPEC §4 Q3.2）：新增几何全部落在
+ *     |x| ≤ 0.90、|z| ≤ 0.70、y ∈ [0, 0.90]（模块坐标）——
+ *     layout() 的 V4.unit/W6.unit 量的是本几何 bbox 的 x/z 跨度（×0.7），
+ *     越界会连锁改掉 4 条判据。LAYER_H/PARTING/BOX_H 与实例 y 一律不动。 */
 function makeLowerGeometry() {
   const geos = [];
   geos.push(new THREE.BoxGeometry(BOX_W, LAYER_H, BOX_D));
@@ -58,16 +69,44 @@ function makeLowerGeometry() {
     pin.translate(dx, 0.28, dz);
     geos.push(pin);
   }
+  // 箱壁加强肋 ×4（x 向肋贴 ±x 壁、z 向肋贴 ±z 壁；全部内收 ≥0.01 于界内）
+  for (const s of [-1, 1]) {
+    const ribX = new THREE.BoxGeometry(0.06, 0.36, 1.36);
+    ribX.translate(s * 0.86, 0, 0);
+    geos.push(ribX);
+    const ribZ = new THREE.BoxGeometry(1.74, 0.36, 0.06);
+    ribZ.translate(0, 0, s * 0.66);
+    geos.push(ribZ);
+  }
+  // 合箱法兰：顶面外沿一圈（x ±0.88 / z ±0.68 界内；顶 0.26 < 上箱底 0.47，不干涉分型面）
+  const flange = new THREE.BoxGeometry(1.76, 0.05, 1.36);
+  flange.translate(0, 0.235, 0);
+  geos.push(flange);
+  // 砂型顶面型腔（内凹读法：略缩进的暗色面片，顶面高出箱体顶 0.003，不改变 bbox 的 x/z 跨度）
+  const cavity = new THREE.BoxGeometry(0.90, 0.05, 0.62);
+  cavity.translate(0, 0.188, 0);
+  geos.push(cavity);
+  // 型腔凸台 ×2（芯头读法）
+  for (const [dx, dz] of [[-0.25, 0.08], [0.18, -0.06]]) {
+    const boss = new THREE.CylinderGeometry(0.10, 0.10, 0.05, 14);
+    boss.translate(dx, 0.21, dz);
+    geos.push(boss);
+  }
   return mergeGeometries(geos);
 }
 
-/** C3：浇口杯 = 喇叭口（锥）+ 直浇口（柱），两段 */
+/** C3：浇口杯 = 喇叭浇口盆 + 直浇口（柱）+ 出气孔，三段
+ *  W3 Q3.2：盆由 Cone(0.18,0.22) 改为 Cylinder(0.18,0.13,0.10) 喇叭盆（外观半径不变，
+ *  不影响阵列 Box3 的 x/z 范围判据）；出气孔 x=+0.30 界内。 */
 function makeCupGeometry() {
   const geos = [];
-  geos.push(new THREE.ConeGeometry(0.18, 0.22, 20));   // §9.3：8 段 → 20 段
+  geos.push(new THREE.CylinderGeometry(0.18, 0.13, 0.10, 20));   // 喇叭盆（上大下小）
   const gate = new THREE.CylinderGeometry(0.07, 0.07, 0.10, 12);
-  gate.translate(0, -0.16, 0);                          // 直浇口伸进上箱
+  gate.translate(0, -0.10, 0);                          // 直浇口接盆底
   geos.push(gate);
+  const vent = new THREE.CylinderGeometry(0.03, 0.03, 0.16, 8);
+  vent.translate(0.30, 0.02, 0);                        // 出气孔（顶略高于盆沿）
+  geos.push(vent);
   return mergeGeometries(geos);
 }
 

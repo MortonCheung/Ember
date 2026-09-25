@@ -59,7 +59,7 @@
 > 落位 (15.5, 0, −4.8)** → 落地 ≈ **3.54 × 1.43 × 1.86 m**，主轴中心高 1.386m（同比 0.745）。
 > 上方 §3 逐件坐标表（本段全部数值）仍是**模型坐标**基准，缩放在 group 级完成，逐件几何未动。
 > 同轮新增 1:1 工具车参照物（`props/toolcart.js`，0.92m 高，挂展厅侧不随车床缩放）。
-> 详见 `SCENE-LAYOUT-FIX-SPEC.md` §10 与 `PROMPT-SCENE-LAYOUT-R3.md`。
+> 详见 `SCENE-LAYOUT-FIX-SPEC.md` §10 与 `archive/spec/PROMPT-SCENE-LAYOUT-R3.md`（已归档）。
 
 ### 1.1 剪影测试（本次新增的硬判据）
 

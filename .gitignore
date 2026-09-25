@@ -26,3 +26,6 @@ Thumbs.db
 .workbuddy/
 .staging/
 *.local
+
+# 参考库（第三方开源仓库，体积 136M，用 refs/_clone.sh 可重建）
+refs/

@@ -519,7 +519,7 @@ lathe: { pos: [9.6, 2.4, 6.2], target: [15, 0.85, -0.5] },   // 3/4 近观：操
 2. **不动 §3.2 模型坐标表 / §9 段数与细节**：放大是 group 变换，不触碰任何逐件几何。
 3. **不动 cast 页**（lathe 模块未被 cast 场景引用，改动无泄漏）。
 
-### 10.5 2C-R3 执行记录（实现方，按 `PROMPT-SCENE-LAYOUT-R3.md` 收口）
+### 10.5 2C-R3 执行记录（实现方，按 `archive/spec/PROMPT-SCENE-LAYOUT-R3.md` 收口）
 
 > 本节由实现方维护，指认 2C-R3 收口后的**实际值**；§10.1–§10.3 的 R2 方案已作废，
 > 最终以本节为准（R2 的差异化放大把长宽比拉到 3.05，读成 CW6163 大车床，已被等比 1.4 取代）。
@@ -725,12 +725,12 @@ cart:    { pos: [14.8, 2.0, 2.8],   target: [14.3, 0.8, -3.7] },  // 工具车 +
 #### C. W2 / W6 轴序不一致（**规格缺陷，已修**）
 
 - 实现方指认属实：W2 写"长/宽/高（x/z/y）"、W6 写 `1.26/0.63/0.98`（x/y/z）——**同一份规格两套次序**。
-- 已在 `PROMPT-SCENE-LAYOUT-R3.md` §3 开头加**全局轴序约定**：*所有三元尺寸一律按世界轴序 `(x, y, z)` 书写；
+- 已在 `archive/spec/PROMPT-SCENE-LAYOUT-R3.md` §3 开头加**全局轴序约定**：*所有三元尺寸一律按世界轴序 `(x, y, z)` 书写；
   语义名（长/宽/高）随物件而变，轴序不变*。
 - **实现方的处理接受**：按规格次序返回 + 在 `name` 里标注轴序，作为后续交付的默认做法。
 - 本文件 §10.3 已核对一致：车床 `3.54 / 1.43 / 1.86`（x 长 / y 高 / z 宽）、砂箱单箱 `1.26 / 0.63 / 0.98`（x 长 / y 高 / z 宽）。
 
-> **D. 遗留**：工具车落位与 W8 判据的落地见 `PROMPT-SCENE-CART-R4.md`（小轮次，只改一个常量 + 判据表）。
+> **D. 遗留**：工具车落位与 W8 判据的落地见 `archive/spec/PROMPT-SCENE-CART-R4.md`（已归档，小轮次，只改一个常量 + 判据表）。
 > 但该轮**未按原样交付**——实现方在 R4 之后自行做了"2C-R5"整体迁位，覆盖了 R4 的落位方案，见 §10.8。
 
 ### 10.8 2C-R5 裁定（排布变更的设计方确认 + 判据依据重立）
@@ -824,10 +824,10 @@ R5 出现三处"照实测反推"的阈值，违反 §10.4 立的规矩：
 
 #### F. 遗留
 
-落地见 `PROMPT-SCENE-R5-FIX.md`（小轮次：车床微调 + 工具车相邻性 + 判据依据重立）。
+落地见 `archive/spec/PROMPT-SCENE-R5-FIX.md`（已归档，小轮次：车床微调 + 工具车相邻性 + 判据依据重立）。
 该轮验收通过后才执行 §10.10 的冻结。
 
-> **编号说明**：提示词 `PROMPT-SCENE-R5-FIX.md` 中引用的「§10.9-A/B/C/E」即本节 A/B/C/E。
+> **编号说明**：提示词 `archive/spec/PROMPT-SCENE-R5-FIX.md`（已归档）中引用的「§10.9-A/B/C/E」即本节 A/B/C/E。
 > 本文件曾出现两个 §10.9（设计方裁定与实现方记录重号），2C-R5-FIX 落地时重排为
 > §10.8.1（R5 落地记录）/ §10.9（R5-FIX 落地记录）/ §10.10（冻结）。
 
@@ -888,7 +888,7 @@ R5 出现三处"照实测反推"的阈值，违反 §10.4 立的规矩：
 - ⚠️ 本机 `npm.ps1` 垫片在 PowerShell 重定向下不可靠，构建请用
   `node node_modules\vite\bin\vite.js build`（cwd = `demo/`）。
 
-### 10.9 2C-R5-FIX 落地记录（实现方，按 `PROMPT-SCENE-R5-FIX.md` 收口）
+### 10.9 2C-R5-FIX 落地记录（实现方，按 `archive/spec/PROMPT-SCENE-R5-FIX.md` 收口）
 
 **依据**：§10.8-A/B/C/D/E。日期 2026-09-16。改动文件：`props/lathe.js`、`props/toolcart.js`、
 `scene/viewport.js`、`pages/hall.js`（仅注释归属）。
@@ -966,7 +966,7 @@ R5 出现三处"照实测反推"的阈值，违反 §10.4 立的规矩：
 > 不是文档里反复出现的「8 个」—— `default / crane / sandbox / cupola / lathe / cart / env`，
 > 运行时 `window.__hall.views.length === 7`（`.workbuddy/probe_presets.py --live` 逐个 `setView()` 复核）。
 > 半径区间 **6.0509 – 41.2311** 与 §10.9.1 / §10.10 给的「6.05–41.23」吻合 → 双方量的是同一组 7 个，
-> 只是"8"这个数从提示词 `PROMPT-SCENE-R5-FIX.md` 的 Y6 一路传抄下来（本记录原文也照抄了，现已改）。
+> 只是"8"这个数从提示词 `archive/spec/PROMPT-SCENE-R5-FIX.md`（已归档）的 Y6 一路传抄下来（本记录原文也照抄了，现已改）。
 > **§10.10 冻结表里的「8 个全部可用」请设计方一并订正为 7 个** —— 设计方条文我不代为改动。
 
 ### 10.9.1 设计方裁定（2026-09-18）：三条全部成立，接受；无缺陷不改数
@@ -1034,6 +1034,20 @@ R3 验收 + R4/R5 收口 + §10.9.1 设计方裁定（三条偏离全部接受�
 
 **移交视频组**：可直接以本版为机位与构图基准；`HALL_VIEWS` 的 8 个预设名与 `layout()` 返回值
 （`lathe.screenW/coverBySandboxes/presence`、`toolcart.nearDist/screenH/presetCart`）为录制时的对表依据。
+
+> ⚠️ **两处补充（2026-09-23 回写，冻结的边界本来就含它们）**
+>
+> ① **§10.10 冻结的是「场景布局与尺度」，范围不覆盖 UI 版式以外的页面级改动。**
+> 体验修订 R1 的第二部分（`archive/spec/PROMPT-UX-REVISION-P2.md`）按其 §3.1 **有界解冻 8 个文件**：
+> `js/pages/turn.js` · `js/scoring/turning.js` · `js/scoring/turning-data.js` · `js/scene/turn-scene.js` ·
+> `js/pages/vault.js` · `js/pages/cast.js` · `js/ui/poster.js` · `js/styles/layout.css`。
+> **其余一切照旧冻结**（`tokens.css` · 路由三件套 · 五个页面 · `props/*` · 除 `turn-scene.js` 外的三维场景 ·
+> `casting*.js` · `ui/emblem.js` · `design/*` · `#/vault` 栅格与 878 预算）。
+> **解冻的代价已付**：五组门禁全部重跑（hall **61/61** · cast **45/45** · entrance **22/22** ·
+> turn selfTest **63/63** · vault **37/37**），读数见 `spec/IMPLEMENTATION-UX-REVISION-P2.md` §5。
+> ② `setView` 机位表那一行的 **「8 个全部可用」**，实现方在 §10.9 已报实际为 **7 个**（我方法条文本不代改）；
+> P2 轮**未动 `viewport.js`**，故与冻结态一致。
+> **结论：场景布局与尺度仍然冻结 —— 下次改动依旧必须新起 R6。**
 
 ---
 

@@ -2,17 +2,17 @@
 
 > ## ⛔ 不要再整份发出（2026-09-18 标注）
 >
-> **本文件是 Step 4 的历史交接件，Step 4 已实现并交付**（见 `spec/IMPLEMENTATION-STEP4-REPORT.md`）。
+> **本文件是 Step 4 的历史交接件，Step 4 已实现并交付**（见 `archive/spec/IMPLEMENTATION-STEP4-REPORT.md`）。
 > 它 §① 的序厅方向是**《铁流凝变》雕塑**——该方向**已被 Step 4C《炉前》取代**
-> （`spec/ENTRANCE-FURNACE-SPEC.md` + `spec/PROMPT-ENTRANCE-FURNACE.md`）。
+> （`spec/ENTRANCE-FURNACE-SPEC.md` + `archive/spec/PROMPT-ENTRANCE-FURNACE.md`）。
 > **整份重跑会让实现方把序厅做回已作废的旧方向。**
 >
 > 现在要发哪一份，按下表取：
 >
 > | 你要做的事 | 发这个 |
 > |---|---|
-> | 通史馆结尾主按钮改文案 / 改落点 | **`spec/PROMPT-HISTORY-CTA-FIX.md`** ← 当前唯一未实现项 |
-> | 序厅（已交付，返工才用） | `spec/PROMPT-ENTRANCE-FURNACE.md` |
+> | 通史馆结尾主按钮改文案 / 改落点 | **`archive/spec/PROMPT-HISTORY-CTA-FIX.md`** ← 当前唯一未实现项 |
+> | 序厅（已交付，返工才用） | `archive/spec/PROMPT-ENTRANCE-FURNACE.md` |
 > | 本文件 | **留档查阅**（§2 通史馆的内容依据仍然有效） |
 >
 > 下面是原始内容，保持不动以便追溯。

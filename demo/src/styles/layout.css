@@ -43,15 +43,11 @@
   align-items: center;
   gap: var(--s1);
 }
+/* P1-2：品牌标记全站一套 26×26 · r6 · 铁水橙（六页的取值都来自这里） */
 .logo__mark {
-  width: 8px; height: 8px; border-radius: 2px;
+  width: 26px; height: 26px; border-radius: var(--r-sm);
   background: var(--c-iron);
   flex: 0 0 auto;
-}
-/* 顶栏 logo 方块比 HUD 的大（对齐设计稿 S01） */
-.topbar .logo__mark {
-  width: 20px; height: 20px;
-  border-radius: 6px;
 }
 .nav {
   display: flex;
@@ -84,7 +80,7 @@
   font-size: var(--fs-display);
   line-height: 1.12;
   margin: var(--s3) 0 var(--s4);
-  letter-spacing: -.01em;
+  letter-spacing: -.02em;
   text-wrap: balance;   /* 窄屏折行时各行均衡，避免单字悬挂 */
 }
 .hero__body {
@@ -97,156 +93,6 @@
   align-items: center;
   gap: var(--s2);
   flex-wrap: wrap;
-}
-
-/* 右栏：滚动飞越画布（Step 1 = 占位） */
-.flyover {
-  position: relative;
-  height: 520px;
-  border-radius: var(--radius);
-  border: 1px solid var(--c-line);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-  background:
-    radial-gradient(120% 90% at 62% 38%, rgba(232, 102, 60, .16) 0%, transparent 58%),
-    linear-gradient(160deg, #2A1D14 0%, #171B21 46%, #12161B 100%);
-}
-/* 画布顶部：chip 行 + 进度线（对齐设计稿 S01） */
-.flyover__top {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 6px 8px 2px;
-}
-.flyover__chips {
-  display: flex;
-  gap: var(--s1);
-  flex-wrap: wrap;
-}
-.flyover__track {
-  height: 2px;
-  border-radius: 2px;
-  background: var(--c-line);
-  overflow: hidden;
-}
-/* P2：进度由滚动注入的 --flyover-progress（0–1）驱动，删除硬编码 34% */
-.flyover__fill {
-  width: calc(var(--flyover-progress, 0) * 100%);
-  height: 100%;
-  background: var(--c-iron);
-}
-
-/* -- 飞越舞台：三章节降级实现（无视频素材也能跑；ready 后由 <video> 接管） -- */
-.flyover__stage {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 320px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #E3E5E8;
-}
-.flyover__video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: none;
-}
-.flyover__stage[data-asset-status="ready"] .flyover__video { display: block; }
-.flyover__stage[data-asset-status="ready"] .flyover__chapter { opacity: 0; pointer-events: none; }
-
-.flyover__chapter {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 20px 22px;
-  opacity: 0;
-  transition: opacity .45s ease;
-}
-.flyover__chapter.is-active { opacity: 1; }
-.flyover__chapter-tag {
-  position: absolute;
-  top: 14px;
-  left: 16px;
-  font-size: var(--fs-micro);
-  letter-spacing: .1em;
-  color: var(--c-iron);
-}
-.flyover__chapter-title {
-  color: var(--c-text);
-  font-size: var(--fs-h2);
-  line-height: 1.25;
-}
-.flyover__chapter-note {
-  color: rgba(242, 244, 247, .62);
-  font-size: var(--fs-caption);
-  max-width: 40ch;
-}
-/* 章节主视觉：CSS 渐变 + 程序化深色工业质感（无真实图片） */
-.flyover__chapter[data-chapter="0"] {
-  background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 2px, transparent 2px 46px),
-    linear-gradient(180deg, #1B2129 0%, #232019 52%, #382519 100%);
-}
-.flyover__chapter[data-chapter="1"] {
-  background:
-    radial-gradient(62% 56% at 50% 40%, rgba(232, 102, 60, .30) 0%, transparent 66%),
-    linear-gradient(180deg, #14181D 0%, #0E1116 100%);
-}
-.flyover__chapter[data-chapter="2"] {
-  background:
-    radial-gradient(48% 30% at 50% 100%, rgba(232, 102, 60, .34) 0%, transparent 70%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 38px),
-    linear-gradient(180deg, #10141A 0%, #1C222B 58%, #2A1D14 100%);
-}
-
-/* -- 章节预告（首屏下方的滚动行程，同时给飞越以滚动空间） -- */
-.flyover-recipes {
-  padding: var(--s6) 0 var(--s8);
-  border-top: 1px solid var(--c-line);
-}
-.flyover-recipes__list {
-  margin-top: var(--s4);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--s3);
-}
-.flyover-recipes__item {
-  padding: var(--s3);
-  border-radius: var(--radius);
-  border: 1px solid var(--c-line);
-  background: var(--c-surface);
-  transition: border-color .25s ease, transform .25s ease;
-}
-.flyover-recipes__item.is-active {
-  border-color: var(--c-iron);
-  transform: translateY(-3px);
-}
-.flyover-recipes__num {
-  font-size: var(--fs-h2);
-  font-weight: 700;
-  color: var(--c-iron);
-}
-.flyover-recipes__title {
-  margin-top: var(--s1);
-  font-size: var(--fs-h3);
-}
-.flyover-recipes__note {
-  margin-top: 6px;
-  font-size: var(--fs-caption);
-  color: var(--c-text-muted);
-}
-.flyover__caption {
-  margin-top: 12px;
-  font-size: var(--fs-micro);
-  color: var(--c-text-muted);
 }
 
 /* ============ 展厅页（全屏沉浸，对应设计稿 S02） ============ */
@@ -285,7 +131,7 @@
   font-size: var(--fs-caption);
   color: var(--c-text-muted);
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   transition: color .18s ease, background-color .18s ease;
 }
 .hud__back:hover { color: var(--c-text); background: rgba(255, 255, 255, .06); }
@@ -325,7 +171,7 @@
 }
 .halls__item {
   padding: 6px 14px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-size: var(--fs-caption);
   color: var(--c-text-muted);
   background: rgba(23, 27, 33, .72);
@@ -352,7 +198,7 @@
   font-size: var(--fs-caption);
   color: var(--c-text-muted);
   padding: 7px 14px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(14, 17, 22, .6);
   border: 1px solid var(--c-line);
   backdrop-filter: blur(8px);
@@ -369,7 +215,7 @@
   bottom: var(--s3);
   width: 180px;
   height: 120px;
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--c-surface) 88%, transparent);
   border: 1px solid var(--c-line);
   backdrop-filter: blur(8px);
@@ -396,7 +242,7 @@
   transform: translate(-50%, -100%);
   pointer-events: auto;
   padding: 7px 16px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-size: var(--fs-caption);
   color: var(--c-text);
   white-space: nowrap;
@@ -430,7 +276,7 @@
   flex-direction: column;
   gap: var(--s1);
   padding: var(--s3);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   border: 1px solid var(--c-line);
   background: rgba(14, 17, 22, .88);
   backdrop-filter: blur(10px);
@@ -455,7 +301,7 @@
   transform: translateX(-50%);
   z-index: 9;
   padding: 8px 18px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-size: var(--fs-caption);
   color: var(--c-text);
   background: rgba(14, 17, 22, .85);
@@ -483,7 +329,7 @@
 .overlay__card {
   max-width: 420px;
   padding: var(--s6);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   border: 1px solid var(--c-line);
   background: var(--c-surface);
   text-align: center;
@@ -506,8 +352,6 @@
 /* ============ 响应式 ============ */
 @media (max-width: 1100px) {
   .hero { grid-template-columns: 1fr; gap: var(--s6); }
-  .flyover { height: 360px; }
-  :root { --fs-display: 46px; --fs-h1: 34px; }
 }
 
 /* ============ 亲手浇铸页（#/cast，对应设计稿 S03，Step 3 新增） ============ */
@@ -541,7 +385,7 @@
   position: relative;
   flex: 1 1 auto;
   min-height: 420px;
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   border: 1px solid var(--c-line);
   overflow: hidden;
   background: var(--c-bg);
@@ -561,7 +405,7 @@
 .cast__anno {
   font-size: var(--fs-caption);
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: rgba(14, 17, 22, .78);
   border: 1px solid var(--c-line);
   color: var(--c-text);
@@ -579,7 +423,7 @@
   align-items: flex-start;
   gap: 2px;
   padding: 10px 16px;
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   background: rgba(14, 17, 22, .78);
   border: 1px solid var(--c-line);
   backdrop-filter: blur(8px);
@@ -588,7 +432,7 @@
 }
 .cast__temp-label { font-size: var(--fs-micro); color: var(--c-text-muted); }
 .cast__temp-value {
-  font-size: 30px;
+  font-size: var(--fs-h2);
   font-weight: 700;
   line-height: 1.1;
   color: var(--c-iron);
@@ -603,7 +447,7 @@
   align-items: center;
   gap: var(--s4);
   padding: var(--s2) var(--s3);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   border: 1px solid var(--c-line);
   background: var(--c-surface);
   min-height: 84px;
@@ -649,7 +493,7 @@
   flex-direction: column;
   gap: var(--s2);
   padding: var(--s3);
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   border: 1px solid var(--c-line);
   background: var(--c-surface);
 }
@@ -660,7 +504,7 @@
   gap: var(--s1);
 }
 .cast__score-num {
-  font-size: 64px;
+  font-size: var(--fs-readout);
   font-weight: 700;
   line-height: 1;
   color: var(--c-iron);
@@ -689,7 +533,7 @@
 .cast__sub-track {
   grid-area: track;
   height: 6px;
-  border-radius: 3px;
+  border-radius: var(--r-xs);
   background: var(--c-surface-2);
   overflow: hidden;
 }
@@ -697,7 +541,7 @@
   display: block;
   height: 100%;
   width: 0%;
-  border-radius: 3px;
+  border-radius: var(--r-xs);
   background: var(--c-iron);
   transition: width .6s cubic-bezier(.22, .8, .36, 1);
 }
@@ -724,6 +568,10 @@
   display: flex;
   align-items: center;
   gap: var(--s2);
+  /* P0-FIX-3：文案自带 ①…⑤，这里必须清掉 <ol> 的自动序号（UA 只重置了 ul，见 base.css:28）。
+     ⚠️ list-style 与 padding 必须**一起**清：只清 list-style 会留 40px padding ⇒ 整条左移 40px。 */
+  list-style: none;
+  padding: 0;
 }
 .cast__step {
   font-size: var(--fs-caption);
@@ -752,16 +600,16 @@
   .cast__controls { flex-wrap: wrap; gap: var(--s2); }
   .cast__slider { flex-basis: 100%; }
   .cast__controls .btn { flex: 1 1 100%; }
-  .cast__score-num { font-size: 48px; }
+  .cast__score-num { font-size: var(--fs-display); }
 }
 @media (max-width: 400px) {
   .cast__step { font-size: var(--fs-micro); }
-  .cast__temp-value { font-size: 24px; }
+  .cast__temp-value { font-size: var(--fs-h2); }
 }
 
 
 @media (max-width: 820px) {
-  :root { --fs-display: 34px; --fs-h1: 27px; --fs-h2: 22px; --topbar-h: 60px; }
+  :root { --fs-display: 34px; --topbar-h: 60px; }
   .wrap { padding: 0 var(--s3); }
   .nav { display: none; }              /* 移动端先收导航，Step 1 不做抽屉 */
   .hero { padding: var(--s6) 0 var(--s8); }
@@ -782,14 +630,11 @@
     right: var(--s3);
     width: auto;
   }
-  /* P2：章节预告单列 */
-  .flyover-recipes__list { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 520px) {
   .hero__actions { flex-direction: column; align-items: stretch; }
   .hero__actions .btn { width: 100%; }
-  .flyover__chips { display: none; }
   .hud__badge { display: none; }   /* 窄屏收起徽标，保住 HUD 标题不换行 */
   .hint { bottom: 130px; }         /* 抬到小地图上方，避免重叠 */
 }
@@ -799,7 +644,7 @@
    所以筹备中馆文字用 steel 灰并缀「· 筹备中」，与可点馆拉开一级。 */
 .halls__item--pending { color: var(--c-steel); }
 .halls__item--pending:hover { color: var(--c-steel); }
-.halls__pending { font-size: 11px; color: var(--c-steel); }
+.halls__pending { font-size: var(--fs-micro); color: var(--c-steel); }
 
 /* ============ 序厅（#/entrance，对应设计稿 S07，Step 4 新增） ============ */
 /* 操作提示在右下（S07）；hall 的 .hint 默认居中，这里覆写 */
@@ -817,7 +662,7 @@
   z-index: 6;
   max-width: min(440px, 60%);
   padding: 10px 16px;
-  border-radius: var(--radius);
+  border-radius: var(--r-lg);
   font-size: var(--fs-caption);
   line-height: 1.6;
   color: var(--c-text);
@@ -826,32 +671,6 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-/* 进场序列（底部居中）：闭合「厂区外景 → 序厅 → 铸造馆」 */
-.sequence {
-  position: absolute;
-  left: 50%;
-  bottom: var(--s3);
-  transform: translateX(-50%);
-  z-index: 6;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 18px;
-  border-radius: 999px;
-  background: rgba(14, 17, 22, .78);
-  border: 1px solid var(--c-line);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  font-size: var(--fs-caption);
-  white-space: nowrap;
-}
-.sequence__item { color: var(--c-text-muted); }
-.sequence__item.is-current {
-  color: var(--c-iron);
-  font-weight: 600;
-}
-.sequence__sep { color: var(--c-steel); }
-
 /* ============ 通史馆长卷（#/history，对应设计稿 S08，Step 4 新增） ============ */
 /* 2D 长卷，零 WebGL。横向栅格按 §2.3（1440 稿）：
    内容左界 120 / 脊线 140 / 节点内容 190（宽 1060）/ 右栏信息 w 320 / 长卷轨 1336 */
@@ -883,10 +702,11 @@
   font-size: var(--fs-caption);
   font-weight: 500;
   color: var(--c-iron);
-  letter-spacing: 2px;
+  letter-spacing: .08em;
 }
 .history__title {
-  font-size: 40px;
+  font-size: var(--fs-display);
+  letter-spacing: -.02em;   /* P1-6：display 级统一 −2%（本条为新增） */
   font-weight: 600;
   line-height: 1.25;
   margin-top: var(--s1);
@@ -902,8 +722,8 @@
   text-align: right;
   padding-top: 6px;
 }
-.history__meta-name { font-size: 13px; color: var(--c-text-muted); }
-.history__meta-sub { font-size: 13px; color: var(--c-steel); margin-top: 2px; }
+.history__meta-name { font-size: var(--fs-caption); color: var(--c-text-muted); }
+.history__meta-sub { font-size: var(--fs-caption); color: var(--c-steel); margin-top: 2px; }
 
 /* -- 时间轴：脊线 2px line 色（内容左界 +20），节点内容 +70 -- */
 .timeline {
@@ -940,7 +760,7 @@
 /* 关键节点（1957）：铁水橙点 + 铁水橙年份（H2：铁水橙的四处用途之一） */
 .timeline__node--key .timeline__dot { background: var(--c-iron); box-shadow: 0 0 8px var(--c-iron); }
 .timeline__year {
-  font-size: 20px;
+  font-size: var(--fs-h3);
   font-weight: 500;
   color: var(--c-steel);
 }
@@ -951,7 +771,7 @@
   margin-top: 4px;
 }
 .timeline__body {
-  font-size: 13px;
+  font-size: var(--fs-caption);
   line-height: 1.8;
   color: var(--c-text-muted);
   margin-top: 6px;
@@ -988,4 +808,853 @@
   .timeline__dot { left: 0; }
   .timeline__node { padding-left: 32px; margin-bottom: 48px; }  /* 节点内容 x=56 */
   .scrollrail { display: none; }                      /* 单列下长卷轨无对应物，收起 */
+}
+
+/* ============ 协作车削页（#/turn，对应设计稿 S04，TURN 包新增） ============
+   ⚠️ 本段**只追加 .turn__* 选择器**，不改上面任何既有选择器（TURN-SPEC §1 / §7.1）。
+   `[hidden]` 兜底：本页多处用 flex，会压过 UA 的 [hidden]，与 cast 页同一处理。 */
+.turn-page [hidden] { display: none !important; }
+
+/* -- 模块导航（高 64 = --hud-h，--c-surface；规格 §2.1） -- */
+.turn__topbar { height: var(--hud-h); }
+.cast__topbar { height: var(--hud-h); }   /* P1-1：浇铸页无主导航 ⇒ 并入沉浸套 64 */
+.turn__mark {
+  width: 26px; height: 26px;
+  border-radius: var(--r-sm);
+  background: var(--c-iron);
+  flex: 0 0 auto;
+}
+.turn__page-title {
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: var(--s2);
+}
+.turn__mode {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
+/* -- 主体：两栏（左 880 / 右 472，padding 32，gap 24；spec §2.2/2.3） -- */
+.turn {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s4);
+  display: grid;
+  grid-template-columns: minmax(0, 880fr) minmax(320px, 472fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--s3);
+  align-items: stretch;
+}
+.turn__stage-col { min-width: 0; display: flex; flex-direction: column; gap: var(--s3); }
+
+/* -- 机床视口 -- */
+.turn__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 420px;
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+  overflow: hidden;
+}
+.turn__viewport { position: absolute; inset: 0; }
+
+/* -- 录制提示（左上 x24 y24） -- */
+.turn__rec {
+  position: absolute;
+  left: var(--s3); top: var(--s3);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+  pointer-events: none;
+}
+.turn__rec-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--c-iron);
+}
+
+/* -- 角色药丸已删（用户 2026-09-21 晚裁定：分工由滑杆标签承担） -- */
+
+/* -- 控制条（高 96，padding 20，gap 32） -- */
+.turn__controls {
+  flex: 0 0 auto;
+  height: 96px;
+  padding: 20px;
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+}
+.turn__slider { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.turn__slider-label {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s1);
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+}
+.turn__slider-label b { color: var(--c-text); font-weight: 600; }
+.turn__slider-range { font-size: var(--fs-micro); color: var(--c-text-muted); }
+/* 滑轨：高 6 / 圆角 3 / --c-line（spec §2.2 第 3 段） */
+.turn__slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  margin: 10px 0;
+  border-radius: var(--r-xs);
+  background: var(--c-line);
+  cursor: pointer;
+}
+.turn__slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--c-iron);
+  border: 2px solid var(--c-surface);
+  cursor: grab;
+}
+.turn__slider input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--c-iron);
+  border: 2px solid var(--c-surface);
+  cursor: grab;
+}
+.turn__slider input[type="range"]:disabled { cursor: not-allowed; opacity: .55; }
+.turn__go { flex: 0 0 auto; width: 150px; height: 46px; border-radius: var(--r-md); font-size: var(--fs-body); }
+
+/* -- 协作面板（472 × 772，padding 24，gap 16，九项自上而下） -- */
+.turn__panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+}
+.turn__panel .eyebrow { font-size: var(--fs-caption); }
+.turn__title { font-size: var(--fs-h3); line-height: 28px; }
+.turn__desc { font-size: var(--fs-caption); line-height: 21px; color: var(--c-text-muted); }
+.turn__divider { display: block; height: 1px; background: var(--c-line); }
+
+/* R1-P2：原「第 5 项：本局用时」整块样式已删（标签 / 44px 读数 / 历史纪录行）
+   —— 页面不再显示任何形式的用时。双折线宿主随之改挂到 .turn__rules 之后。 */
+
+/* 双折线（回放轨迹）：两色 = --c-iron / --c-text-muted */
+.turn__trace { margin-top: var(--s1); }
+.turn__trace svg {
+  display: block;
+  width: 100%; height: 56px;
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+}
+.turn__trace polyline { fill: none; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.turn__trace-n { stroke: var(--c-iron); }
+.turn__trace-f { stroke: var(--c-text-muted); }
+.turn__trace-cut { stroke: var(--c-steel); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.turn__trace-cursor { stroke: var(--c-text); stroke-width: 1; opacity: .75; vector-effect: non-scaling-stroke; }
+.turn__trace-legend {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  margin-top: 6px;
+  font-size: var(--fs-micro);
+}
+.turn__trace-key--n { color: var(--c-iron); }
+.turn__trace-key--f { color: var(--c-text-muted); }
+.turn__trace-key--cut { color: var(--c-steel); }
+
+/* 第 7 项：团队协作积分（画稿为空占位 → 结算后填 44px 大数字） */
+.turn__collab {
+  flex: 1 1 auto;
+  min-height: 120px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+.turn__collab-label { font-size: var(--fs-caption); color: var(--c-steel); }
+.turn__collab-value { font-size: var(--fs-display); font-weight: 700; line-height: 1; color: var(--c-iron); }
+.turn__collab-value[data-grade="bad"] { color: var(--c-text-muted); }
+
+/* 第 8 项：按钮行 */
+.turn__actions { display: flex; gap: 14px; }
+.turn__action {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 42px;
+  padding: 0 10px;
+  border-radius: var(--r-md);
+  border-color: var(--c-steel);
+  font-size: var(--fs-body);
+  font-weight: 500;
+}
+.turn__rules {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--fs-caption);
+  line-height: 1.8;
+  color: var(--c-text-muted);
+}
+
+/* R1-P2：原「第 9 项：协作榜」整块样式（榜容器 / 3 行栅格 / 名次 / 队名 / 用时 / 未入榜标记
+   / 榜脚小字）已删 —— 排名榜从界面与引擎两侧一并移除。 */
+.turn__note { font-size: var(--fs-micro); line-height: 1.7; color: var(--c-text-muted); }
+
+/* ============ 响应式（协作车削） ============ */
+@media (max-width: 1220px) {
+  .turn { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+  .turn__stage { min-height: 340px; }
+}
+@media (max-width: 820px) {
+  .turn { padding: var(--s2) var(--s3) var(--s3); gap: var(--s2); }
+  .turn__page-title { display: none; }              /* 与既有移动端导航收纳一致 */
+  .turn__controls { height: auto; flex-wrap: wrap; gap: var(--s2); }
+  .turn__slider { flex-basis: 100%; }
+  .turn__go { flex: 1 1 100%; }
+  .turn__collab { min-height: 72px; }
+  .turn__actions { flex-wrap: wrap; }
+  .turn__action { flex: 1 1 100%; }
+}
+
+/* ============================================================
+   #/vault 数字工牌（VAULT-SPEC §1–§8 / S05）
+   纯 DOM 页：零 WebGL、零贴图、零新增依赖
+   本节为「只追加」—— 不改上方任何既有选择器（§12）
+   画稿 S05 无顶栏（§1「无 HUD、无场馆导航，画稿如此」）—— 两栏直接铺满整屏
+   ============================================================ */
+
+/* -- 存储不可用提示（状态 C：fixed 悬置，不挤占左栏 878 预算） -- */
+.vault__storagetip {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 60;
+  font-size: var(--fs-micro);
+  color: var(--c-iron);
+  text-align: center;
+  padding: 6px var(--s3);
+  background: color-mix(in srgb, var(--c-bg) 92%, var(--c-iron) 8%);
+  border-bottom: 1px solid var(--c-line);
+}
+
+/* -- 两栏：左 620 固定 / 右 fill（§1）；无顶栏，整屏 900 归两栏 -- */
+.vault {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 620px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 0;
+}
+.vault__left {
+  width: 620px;
+  min-width: 0;
+  padding: 56px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;                       /* 卡 ↔ 图鉴的 gap（§1 兜底时优先压这个，不缩卡） */
+}
+.vault__right {
+  min-width: 0;
+  padding: 56px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;         /* 画稿右栏内容垂直居中（S05 实测） */
+  gap: var(--s2);
+}
+
+/* -- 藏品卡 400×560（§2） -- */
+.vault__card {
+  width: 400px;
+  height: 560px;
+  margin: 0 auto;                  /* 水平居中（§1） */
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  border-radius: var(--r-lg);
+  background: var(--c-surface-2);
+}
+.vault__card-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s1); }
+.vault__card-label { font-size: var(--fs-micro); font-weight: 500; color: var(--c-iron); white-space: nowrap; }
+.vault__card-no { font-size: var(--fs-micro); font-weight: 500; color: var(--c-steel); white-space: nowrap; }
+
+/* 徽记区：高 210，正方形 canvas 水平居中（§3.2） */
+.vault__emblem {
+  flex: 0 0 210px;
+  height: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.vault__emblem-canvas { display: block; }
+.vault__emblem-canvas[role="img"] { background: transparent; }
+
+/* 姓名（34px 写死，§11 裁定 3） + 空态提示 */
+.vault__name-row { display: flex; align-items: baseline; gap: var(--s1); min-height: 40px; }
+.vault__name {
+  font-size: var(--fs-h2);         /* P1-5：34 → 28（原注「tokens 无此档且已冻结」已由本批解冻） */
+  font-weight: 700;
+  line-height: 40px;
+  color: var(--c-text);
+  cursor: text;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  padding: 0;
+  background: transparent;
+  font-family: inherit;
+  max-width: 100%;
+}
+.vault__name:hover { border-bottom-color: var(--c-line); }
+.vault__name--input {
+  font-size: var(--fs-h2); font-weight: 700; line-height: 40px;
+  color: var(--c-text);
+  border-bottom: 1px solid var(--c-iron);   /* §7：透明底 + 底部 1px --c-iron */
+  outline: none;
+  width: 100%;
+}
+.vault__name-hint { font-size: var(--fs-micro); color: var(--c-steel); white-space: nowrap; }
+
+.vault__rank { font-size: var(--fs-body); font-weight: 500; color: var(--c-iron); }
+.vault__rule { display: block; height: 1px; background: var(--c-line); }
+
+/* 元信息 3 组（键 11px / 值 22px 写死，§11 裁定 4） */
+.vault__meta { display: flex; gap: 20px; margin: 0; }
+.vault__meta-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vault__meta dt { font-size: var(--fs-micro); color: var(--c-steel); white-space: nowrap; }
+.vault__meta dd {
+  margin: 0;
+  font-size: var(--fs-h3);         /* P1-5：22 → 18（原「画稿原值」；VAULT-SPEC §11 裁定 4 由此解冻） */
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--c-text);
+  white-space: nowrap;
+}
+
+.vault__card-spacer { flex: 1 1 auto; }   /* 画稿 3:258 的弹性占位（照画稿保留） */
+.vault__card-foot { font-size: var(--fs-micro); font-weight: 500; color: var(--c-steel); }
+
+/* -- 馆藏图鉴带 6 列 × 2 行（§4） -- */
+.vault__dex { display: flex; flex-direction: column; gap: var(--s1); }
+.vault__dex-head { display: flex; align-items: baseline; justify-content: space-between; height: 20px; }
+.vault__dex-title { font-size: var(--fs-caption); font-weight: 500; color: var(--c-text); }
+.vault__dex-count { font-size: var(--fs-micro); color: var(--c-steel); }
+.vault__dex-grid {
+  margin: 0;                       /* UA 默认 margin 1em 0 会把图鉴带顶出 878 预算 */
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, 78px);
+  grid-auto-rows: 78px;
+  gap: 8px;                        /* 6×78 + 5×8 = 508 = 左栏内容宽 ✓ */
+}
+.vault__cell {
+  position: relative;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+.vault__cell.is-on { background: var(--c-surface-2); }
+.vault__cell:not(.is-on) { border: 1px dashed var(--c-line); background: transparent; }
+.vault__cell-icon { width: 34px; height: 34px; display: block; }
+.vault__cell-no {
+  position: absolute;
+  right: 5px; bottom: 3px;
+  font-size: var(--fs-micro);
+  color: var(--c-text-muted);   /* P0-FIX-2：原 var(--c-line) 是描边色，当文字色仅 1.55:1（< AA 4.5） */
+}
+.vault__cell.is-on .vault__cell-no { color: var(--c-iron); }
+
+/* -- 右栏：眉标 / 标题 / 正文（§1；正文 15px = §11 裁定 2） -- */
+.vault__title { font-size: var(--fs-h2); line-height: 1.18; font-weight: 700; }  /* P1-5：34 → 28（VAULT-SPEC §11 裁定 3 由此解冻） */
+.vault__body { margin: 0; }
+.vault__body span { font-size: var(--fs-body); line-height: 24px; color: var(--c-text-muted); }
+
+/* -- 衍生品宫格：2 列铺满（§5.1 裁定，卡宽 calc((100% − 16px)/2) ≈ 346） -- */
+.vault__derivs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.vault__deriv {
+  position: relative;
+  height: 150px;
+  box-sizing: border-box;
+  padding: 18px;
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+/* P0-FIX-4：9c 已把名称换成按钮（旧类名已无消费者）⇒ 这两条规则改跟新类名，字重与锁定态降对比恢复 */
+.vault__deriv-btn { font-size: var(--fs-body); font-weight: 500; color: var(--c-text); }
+.vault__deriv-desc { font-size: var(--fs-micro); line-height: 18px; color: var(--c-text-muted); }
+/* 锁定态（§5.3：降对比 + 一行小字；不做毛玻璃、不做锁形图标） */
+.vault__deriv.is-locked .vault__deriv-btn { color: var(--c-text-muted); }
+.vault__deriv.is-locked .vault__deriv-desc { color: var(--c-steel); }
+.vault__deriv-badge {
+  position: absolute;
+  top: 16px; right: 18px;
+  font-size: var(--fs-micro);
+  color: var(--c-steel);
+}
+
+/* -- 按钮行（§10 出口；画稿两枚等宽 ≈346，铺满 708） -- */
+.vault__actions { display: flex; gap: 16px; margin-top: var(--s1); }
+.vault__poster, .vault__next { flex: 1 1 0; height: 48px; }
+.vault__note { display: flex; gap: var(--s3); font-size: var(--fs-micro); color: var(--c-steel); }
+.vault__toast { font-size: var(--fs-micro); color: var(--c-text-muted); }
+
+/* ============ R1-P2 追加（不改上方任何既有选择器） ============ */
+
+/* -- 9b 返回键：fixed 悬置（与 .vault__storagetip 同一手法）
+      ⇒ 不参与 .vault 的两栏栅格、不占左栏 878 / 900 的高度预算、不产生横向滚动。
+      ⚠️ 不用 absolute：.vault 是 grid 且未设 position，绝对定位会挂到初始包含块上。 -- */
+.vault__back {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 70;
+}
+
+/* -- 9a⑤ 工艺指纹：右栏正文之下的一行小字（缺数据整行 hidden，不占高度） -- */
+.vault__fingerprint {
+  margin: 0;
+  font-size: var(--fs-micro);
+  line-height: 18px;
+  color: var(--c-steel);
+}
+
+/* -- 9c 图鉴格可点：外层 <li>（栅格 / .is-on 态）不动，内嵌按钮铺满格子 -- */
+.vault__dex { position: relative; }
+.vault__cell-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+}
+/* 12 格共用的一行说明：绝对定位在图鉴带下方 ⇒ 不占栅格高度（878 预算不变） */
+.vault__dex-note {
+  position: absolute;
+  left: 0; right: 0; top: 100%;
+  margin: 4px 0 0;
+  font-size: var(--fs-micro);
+  line-height: 16px;
+  color: var(--c-iron);
+}
+
+/* -- 9c 衍生卡可点：名称改用按钮（字号 / 字重 / 颜色见上方 .vault__deriv-btn 两条规则） -- */
+.vault__deriv-btn { text-align: left; padding: 0; }
+/* 「怎么拿到它」就地一行小字：绝对定位在卡内下方留白处 ⇒ 不改卡高（150px） */
+.vault__deriv-note {
+  position: absolute;
+  left: 18px; right: 18px; bottom: 14px;
+  margin: 0;
+  font-size: var(--fs-micro);
+  line-height: 16px;
+  color: var(--c-iron);
+}
+
+/* -- 响应式（追加，不动上方断点内的规则） -- */
+@media (max-width: 1220px) {
+  .vault { grid-template-columns: minmax(0, 1fr); }
+  .vault__left { width: auto; }
+  .vault__right { justify-content: flex-start; }
+}
+@media (max-width: 820px) {
+  .vault__left, .vault__right { padding: var(--s3); }
+  .vault__card { width: 100%; max-width: 400px; height: auto; min-height: 560px; }
+  .vault__dex-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: auto; }
+  .vault__dex-grid .vault__cell { aspect-ratio: 1 / 1; }
+  .vault__cell-icon { width: 26px; height: 26px; }  /* 窄屏缩小图标，给右下角序号让位 */
+  .vault__derivs { grid-template-columns: minmax(0, 1fr); }
+  .vault__deriv { height: auto; min-height: 120px; }
+  .vault__actions { flex-direction: column; }
+  .vault__poster, .vault__next { flex: 1 1 auto; width: 100%; }
+}
+
+/* ============================================================
+   首页 · 静态炉体剖面（体验修订 R1 第 3 条）
+   原「飞越画布」右栏位置改放这张**不参与滚动**的几何图，避免右栏空掉。
+   配色沿用被删掉的第三章章节板那套写法。
+   ============================================================ */
+.hero__furnace {
+  /* 冲天炉剖面轮廓：炉喉窄 → 炉腹宽 → 炉缸收（两处图层共用，避免重复） */
+  --furnace-profile: polygon(
+    39% 0, 33% 24%, 26% 60%, 34% 72%, 34% 100%,
+    66% 100%, 66% 72%, 74% 60%, 67% 24%, 61% 0
+  );
+  position: relative;
+  margin: 0;
+  height: 520px;                       /* 与原 .flyover 同高，保住 hero 两栏平衡 */
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-line);
+  overflow: hidden;
+  background:
+    radial-gradient(48% 30% at 50% 100%, rgba(232, 102, 60, .34) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .02) 0 1px, transparent 1px 38px),
+    linear-gradient(180deg, #10141A 0%, #1C222B 58%, #2A1D14 100%);
+}
+/* 炉体实体 */
+.hero__furnace-body {
+  position: absolute;
+  left: 50%; top: 8%;
+  width: 46%; height: 78%;
+  transform: translateX(-50%);
+  clip-path: var(--furnace-profile);
+  background: linear-gradient(180deg, #232A34 0%, #171C23 55%, #2A1D14 100%);
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, .18));   /* 沿裁切轮廓的 1px 描边 */
+}
+/* 炉料层线（同一裁切轮廓，只叠一层横向细线） */
+.hero__furnace-charge {
+  position: absolute;
+  left: 50%; top: 8%;
+  width: 46%; height: 78%;
+  transform: translateX(-50%);
+  clip-path: var(--furnace-profile);
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .05) 0 1px, transparent 1px 26px);
+}
+/* 出铁口 —— 全图唯一暖色点（与"唯一暖源"一致） */
+.hero__furnace-taphole {
+  position: absolute;
+  left: 50%; top: 78%;
+  width: 24%; height: 4px;
+  transform: translateX(-50%);
+  border-radius: var(--r-xs);
+  background: var(--c-iron);
+  box-shadow: 0 0 14px 3px rgba(232, 102, 60, .45);
+}
+.hero__furnace-cap {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 10px 14px;
+  font-size: var(--fs-micro);
+  color: var(--c-text-muted);
+  border-top: 1px solid var(--c-line);
+  background: rgba(14, 17, 22, .55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* ============================================================
+   首页 · 炉子的账本（S11，R1-P3）
+   ⚠️ 自带 300vh 行程 —— 进度 = **行程容器**已滚过的比例（不是整页比例）。
+   三屏绝对定位叠在同一视口里，相邻屏在边界 ±0.03 带内交叉淡入淡出（只动 opacity）；
+   is-current 是"到过"标记（累计：0 处 1 屏 / 0.30 处 2 屏 / 0.63 处 3 屏），
+   is-live 决定哪一屏吃点击。滚动时只写一个变量 --ledger-p，格子一律 CSS 推导。
+   ============================================================ */
+.ledger {
+  position: relative;
+  height: 450vh;   /* R2（2026-09-23 21:25 用户：「做长一点」）：300vh → 450vh，行程 1.5× */
+}
+.ledger__pin {
+  position: sticky;
+  top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  background: linear-gradient(180deg,
+    transparent 0%, rgba(31, 36, 43, .5) 22%,
+    rgba(31, 36, 43, .5) 78%, transparent 100%);
+}
+.ledger__screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  /* R2：把离散的 scroll 采样补成连续淡变 —— 平滑靠这一条，不靠把带宽拉大
+     （带宽越大，两屏文字重影越久）。prefers-reduced-motion 下由文末媒体查询关掉。 */
+  transition: opacity .18s ease;
+}
+/* 交叉淡入淡出的带 = 边界 ±.04（R2 由 ±.03 略加宽；行程同时 1.5×，
+   所以实际淡变距离 108px → 252px ≈ 2.3×） */
+.ledger__screen[data-ledger-screen="0"] {
+  --pl: clamp(0, calc(var(--ledger-p, 0) / .32), 1);
+  opacity: calc(1 - clamp(0, calc((var(--ledger-p, 0) - .26) / .08), 1));
+}
+.ledger__screen[data-ledger-screen="1"] {
+  --pl: clamp(0, calc((var(--ledger-p, 0) - .30) / .33), 1);
+  opacity: calc(clamp(0, calc((var(--ledger-p, 0) - .26) / .08), 1)
+    * (1 - clamp(0, calc((var(--ledger-p, 0) - .59) / .08), 1)));
+}
+.ledger__screen[data-ledger-screen="2"] {
+  --pl: clamp(0, calc((var(--ledger-p, 0) - .63) / .37), 1);
+  opacity: clamp(0, calc((var(--ledger-p, 0) - .59) / .08), 1);
+}
+.ledger__screen.is-live {
+  pointer-events: auto;
+  z-index: 2;
+}
+.ledger__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: var(--s8);
+  align-items: center;
+}
+.ledger__h {
+  font-size: var(--fs-display);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  margin: var(--s2) 0 var(--s3);
+}
+.ledger__lede {
+  color: var(--c-text-muted);
+  max-width: 46ch;
+}
+.ledger__cap {
+  margin-top: var(--s3);
+  font-size: var(--fs-caption);
+  color: var(--c-steel);
+}
+.ledger__cap b { color: var(--c-text-muted); font-weight: 500; }
+
+/* -- 格子（屏 1 的 1,000 格 / 屏 3 的 69 格年条共用一套点亮语言）：
+      格子本体常驻（空格底色 #232A33），is-on 的 ::after 载橙色，
+      随各自渲染时定死的 --t 门槛逐格点亮 —— 滚动时零 DOM 写操作 -- */
+.ledger__grid i,
+.ledger__years i {
+  position: relative;
+  display: block;
+  background: #232A33;
+}
+.ledger__grid i.is-on::after,
+.ledger__years i.is-on::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--c-iron);
+  opacity: clamp(0, calc((var(--pl, 0) - var(--t, 0)) / .08), 1);
+  transition: opacity .3s ease-out;   /* R2：每次滚轮跳一格时补帧，格子不再"瞬移点灯" */
+}
+.ledger__grid {
+  display: grid;
+  grid-template-columns: repeat(40, 1fr);
+  gap: 2px;
+}
+.ledger__grid i { aspect-ratio: 1; border-radius: var(--r-xs); }
+.ledger__years {
+  display: grid;
+  grid-template-columns: repeat(69, 1fr);
+  gap: 1px;
+  height: 96px;
+  align-items: end;
+}
+.ledger__years i { height: 100%; border-radius: var(--r-xs); }
+
+/* -- 屏 2：浮雕立面（沿用 S10 序厅基准的制图语言；面部平涂 #33241A，不加纹理/渐变） -- */
+.ledger__slab { position: relative; padding-top: 46px; }
+.ledger__slab-box {
+  position: relative;
+  aspect-ratio: 22 / 11.5;          /* 写死高度会在别的视口破 1.91 宽高比 */
+  background: #33241A;
+  border: 1px solid #6B4534;
+  border-radius: var(--r-xs);
+  overflow: hidden;
+}
+/* 尺寸线：1px 细线 + 两端 9px 端短（CSS 边框直接画，不用图）；标注本身即实际米数 */
+.ledger__dim { position: absolute; }
+.ledger__dim-lbl {
+  font-size: var(--fs-micro);
+  color: #C9A18A;
+  font-family: var(--font-num);
+}
+/* 长（箱体上方，标注居中于线上方） */
+.ledger__dim--h {
+  left: 0; right: 0; top: -30px; height: 9px;
+  border-top: 1px solid #6B4534;
+  border-left: 1px solid #6B4534;
+  border-right: 1px solid #6B4534;
+}
+.ledger__dim--h .ledger__dim-lbl {
+  position: absolute;
+  left: 0; right: 0; top: -19px;
+  text-align: center;
+}
+/* 高（箱体右内缘 12px，标注在线左侧、垂直居中） */
+.ledger__dim--v {
+  top: 0; bottom: 0; right: 12px; width: 9px;
+  border-right: 1px solid #6B4534;
+  border-top: 1px solid #6B4534;
+  border-bottom: 1px solid #6B4534;
+}
+.ledger__dim--v .ledger__dim-lbl {
+  position: absolute;
+  top: 50%; right: 16px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+/* 人形比例尺：柱宽 44px，刻度每 1.7 m 一格（6.8 格满高），7 个 1.7 m 人形自下而上叠高，
+   第 7 个被顶边裁切 ⇒ 读者自己数出「6.8 个人高」；第 k 个在 --pl 过 .02+k×.1 时出现 */
+.ledger__ruler {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 44px;
+  background-color: rgba(14, 17, 22, .38);
+  background-image: repeating-linear-gradient(to top,
+    rgba(201, 161, 138, .30) 0 1px, transparent 1px 14.7059%);
+  border-right: 1px solid rgba(232, 102, 60, .45);
+}
+.ledger__people { display: block; width: 100%; height: 100%; }
+.ledger__people g {
+  opacity: clamp(0, calc((var(--pl, 0) - .02 - var(--k, 0) * .1) / .06), 1);
+  transition: opacity .3s ease-out;   /* R2：人形逐个"长出来"而不是硬切 */
+}
+.ledger__people g:nth-of-type(1) { --k: 0; }
+.ledger__people g:nth-of-type(2) { --k: 1; }
+.ledger__people g:nth-of-type(3) { --k: 2; }
+.ledger__people g:nth-of-type(4) { --k: 3; }
+.ledger__people g:nth-of-type(5) { --k: 4; }
+.ledger__people g:nth-of-type(6) { --k: 5; }
+.ledger__people g:nth-of-type(7) { --k: 6; }
+/* 单位尺寸线：只在最下面一格标注 1.7 m（人形柱右侧） */
+.ledger__unit {
+  position: absolute;
+  left: 52px; bottom: 0;
+  width: 9px; height: 14.7059%;
+  border-left: 1px solid #C9A18A;
+  border-top: 1px solid #C9A18A;
+  border-bottom: 1px solid #C9A18A;
+}
+.ledger__unit-lbl {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--fs-micro);
+  color: #C9A18A;
+  font-family: var(--font-num);
+  white-space: nowrap;
+}
+/* 标高基准线（接地，两端 9px 竖向短划） */
+.ledger__slab-hline {
+  position: absolute;
+  left: 0; right: 0; bottom: -26px;
+  height: 1px;
+  background: var(--c-line);
+}
+.ledger__slab-hline::before,
+.ledger__slab-hline::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  width: 1px; height: 9px;
+  background: var(--c-line);
+}
+.ledger__slab-hline::before { left: 0; }
+.ledger__slab-hline::after { right: 0; }
+.ledger__slab-foot {
+  margin-top: 46px;
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-micro);
+  color: var(--c-steel);
+}
+.ledger__cta {
+  margin-top: var(--s4);
+  display: flex;
+  align-items: center;
+}
+/* R2：动画偏好为「减少动效」时，过渡一律关掉 —— 直接落终态（与 §2.3 的 reduced-motion 一致） */
+@media (prefers-reduced-motion: reduce) {
+  .ledger__screen,
+  .ledger__grid i.is-on::after,
+  .ledger__years i.is-on::after,
+  .ledger__people g { transition: none; }
+}
+
+/* ============================================================
+   关于项目页（#/about，体验修订 R1 第 2 条）
+   它是**滚动页**，复用 .topbar / .wrap / .eyebrow / .btn / .num，
+   不新造视觉体系；新增样式只允许 .about__*。
+   ============================================================ */
+.about__lede { max-width: 58ch; color: var(--c-text-muted); }
+.about__section { margin-top: var(--s8); }
+.about__section h2 { font-size: var(--fs-h2); margin-bottom: var(--s3); }  /* P1-5/§3.4：UA 的 1.5em×15 = 22.5px 不是设计值 */
+.about__layers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s3);
+  margin-top: var(--s4);
+}
+.about__layer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s2);
+  padding: var(--s3);
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+}
+.about__layer-no {
+  font-size: var(--fs-caption);
+  color: var(--c-iron);
+  letter-spacing: .08em;
+}
+.about__layer h3 { font-size: var(--fs-h3); }
+.about__layer p { flex: 1 1 auto; color: var(--c-text-muted); }
+.about__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s2) var(--s4);
+  margin-top: var(--s4);
+}
+.about__fact {
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+.about__fact-k { font-size: var(--fs-caption); color: var(--c-text-muted); }
+.about__fact-v { font-size: var(--fs-h3); font-weight: 600; }
+.about__src {
+  margin-top: var(--s4);
+  font-size: var(--fs-micro);
+  color: var(--c-steel);
+}
+.about__tech { max-width: 62ch; color: var(--c-text-muted); }
+
+/* ---- 响应式：首页炉体图 / 账本三屏 / 关于项目 ---- */
+@media (max-width: 1100px) {
+  .hero__furnace { height: 360px; }
+}
+@media (max-width: 820px) {
+  .ledger { height: 360vh; }                       /* R2：与桌面同比例 1.5×（240vh → 360vh） */
+  .ledger__inner { grid-template-columns: minmax(0, 1fr); gap: var(--s6); }
+  .ledger__lede { max-width: none; }
+  .ledger__grid,
+  .ledger__years,
+  .ledger__slab { max-width: 420px; }              /* 压住视觉件高度，三屏内容不溢出钉住视口 */
+  .about__layers { grid-template-columns: minmax(0, 1fr); }
+  .about__facts { grid-template-columns: minmax(0, 1fr); }
 }

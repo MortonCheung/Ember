@@ -1,7 +1,7 @@
 # 交接提示词 · Step 4A（序厅视觉重修）
 
 > **用法**：把下面 `---` 之间的全文复制给代码工作流。
-> 设计侧依据：`spec/ENTRANCE-VISUAL-REVISION.md`（**本轮唯一依据**）+ `design/S09-序厅形态与光影基准.png`（形态基准）。
+> 设计侧依据：`archive/spec/ENTRANCE-VISUAL-REVISION.md`（**本轮唯一依据**）+ `design/S09-序厅形态与光影基准.png`（形态基准）。
 
 ---
 
@@ -11,7 +11,7 @@
 
 先读两份，再动手：
 
-1. `spec/ENTRANCE-VISUAL-REVISION.md` —— 唯一依据
+1. `archive/spec/ENTRANCE-VISUAL-REVISION.md` —— 唯一依据
 2. `design/S09-序厅形态与光影基准.png` —— **形态基准图（本轮新增，最关键的一张）**
 
 **先说清楚：这一轮的问题不在你，在规格。**

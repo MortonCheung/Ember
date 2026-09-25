@@ -1,6 +1,6 @@
 /* ============================================================
    props/toolcart.js — 钳工工具车（已知尺寸参照物）
-   依据：spec/PROMPT-SCENE-LAYOUT-R3.md §3-⑤
+   依据：archive/spec/PROMPT-SCENE-LAYOUT-R3.md §3-⑤（已归档）
         + spec/SCENE-LAYOUT-FIX-SPEC.md §10.5（2C-R3 落地）+ §10.8-B（2C-R5-FIX 定稿）
    作用：展陈设计里让"小展品不显小"的标准手法 —— 场内给一个观众熟悉的尺度基准。
         车床是等比放大的（1.4×），单看它无从判断体量；旁边放一台 1:1 的工具车

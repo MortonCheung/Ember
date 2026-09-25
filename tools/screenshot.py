@@ -3,12 +3,17 @@
 用途：Step 1 验收需要"与设计稿比对"，本工具让你能在不打开浏览器的情况下
 对页面截图并保存为 PNG，然后用 Read 工具查看。
 
-用法：
-    python tools/screenshot.py <url> <输出名> [等待毫秒]
+  用法：
+      python tools/screenshot.py <url> <输出名> [等待毫秒] [滚动位置px] [视口宽] [视口高]
 
-示例：
-    python tools/screenshot.py http://localhost:4173/ home 6000
-    python tools/screenshot.py "http://localhost:4173/#/hall" hall 9000
+  示例：
+      python tools/screenshot.py http://localhost:4173/ home 6000
+      python tools/screenshot.py "http://localhost:4173/#/hall" hall 9000
+      python tools/screenshot.py http://localhost:4173/ home_axis 6000 1600   # 滚到 1600px 再拍
+      python tools/screenshot.py http://localhost:4173/ home_375 6000 0 375 812   # 375 移动端视口
+
+  说明：第 4 个参数用于**滚动页**（首页 .axis 是 300vh 行程，不滚动只能看到第一屏）。
+        第 5/6 个参数（宽/高）可选，默认 1440×900；宽 ≤500 自动按移动端视口渲染。
 
 产物：保存到 .workbuddy/shots/<输出名>.png，并打印控制台错误。
 
@@ -135,6 +140,10 @@ def main():
     url = sys.argv[1]
     name = sys.argv[2]
     wait_ms = int(sys.argv[3]) if len(sys.argv) > 3 else 6000
+    scroll_y = int(sys.argv[4]) if len(sys.argv) > 4 else 0
+    vw = int(sys.argv[5]) if len(sys.argv) > 5 else 1440      # 视口宽（可选，默认 1440）
+    vh = int(sys.argv[6]) if len(sys.argv) > 6 else 900       # 视口高（可选，默认 900）
+    is_mobile = vw <= 500                                     # ≤500 视为移动端视口
 
     os.makedirs(OUT_DIR, exist_ok=True)
     os.makedirs(PROFILE, exist_ok=True)
@@ -144,7 +153,7 @@ def main():
         EDGE, "--headless=new", "--no-first-run", "--no-default-browser-check",
         f"--remote-debugging-port={port}", f"--user-data-dir={PROFILE}",
         "--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader",
-        "--window-size=1440,900", "--hide-scrollbars", "about:blank",
+        f"--window-size={vw},{vh}", "--hide-scrollbars", "about:blank",
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     try:
@@ -164,9 +173,15 @@ def main():
         ws.call(mid, "Runtime.enable"); mid += 1
         ws.call(mid, "Page.enable"); mid += 1
         ws.call(mid, "Emulation.setDeviceMetricsOverride",
-                {"width": 1440, "height": 900, "deviceScaleFactor": 1, "mobile": False}); mid += 1
+                {"width": vw, "height": vh, "deviceScaleFactor": 1,
+                 "mobile": is_mobile}); mid += 1
         ws.call(mid, "Page.navigate", {"url": url}); mid += 1
         time.sleep(wait_ms / 1000)
+
+        if scroll_y:
+            ws.call(mid, "Runtime.evaluate",
+                    {"expression": f"window.scrollTo(0, {scroll_y}); 'ok'"})
+            time.sleep(1.2)          # 等滚动驱动的 CSS 过渡落定
 
         shot = ws.call(mid, "Page.captureScreenshot", {"format": "png"}); mid += 1
         data = shot.get("result", {}).get("data")

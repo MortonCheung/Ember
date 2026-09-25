@@ -32,7 +32,7 @@ npm run preview    # 预览构建产物  http://localhost:4173/
 ## 技术栈
 
 Vite 5 + 原生 JS（ES Module）+ three.js ^0.160 + 原生 CSS（Token 化设计变量）。
-无框架、无 UI 库。字体：Noto Sans SC / Inter（Google Fonts）。
+无框架、无 UI 库。字体：**霞鹜文楷 LXGW WenKai（自托管子集，SIL OFL 1.1，Regular/Bold 双字重）**。
 
 ## 降级策略
 

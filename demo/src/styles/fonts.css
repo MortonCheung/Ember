@@ -1,0 +1,35 @@
+/* ============================================================
+   fonts.css — 自托管字体（子集化静态字重）
+   来源：霞鹜文楷 LXGW WenKai v1.330（SIL Open Font License 1.1）
+        许可证全文见 public/fonts/OFL-LXGWWenKai.txt
+
+   ⚠️ 族名必须与 tokens.css / poster.js / emblem.js 里的栈完全一致：
+      CSS 与 Canvas 导出共用同一份字体栈（poster.js:19 的 FONT_CN 与 emblem.js:40 的 FONT_CN 写死在 JS 里），
+      改名会让页面与导出海报分叉。
+
+   ⚠️ 两个静态字重：Regular(400) 与 Bold(700)。CSS 里的 500 会取 Regular、600 会取 Bold（浏览器匹配规则，不合成）。
+      —— 这是静态字体的物理约束；「找回中黑层」需新增 Medium 字重，属另一轮。
+
+   ⚠️ 子集覆盖全站字表 1,134 / 1,134 字（落地时对 v1.330 TTF 逐字复测；第十三批出稿曾在 v1.250 分片上
+      量到缺 Δθπω 四字，v1.330 全量已补齐 —— 含 viewport.js:470 的「|Δz| < 0.2」，无需系统兜底）。
+      用户输入（#/vault 的藏品命名）可能出现子集外的字，
+      此时由 tokens.css 里的 "PingFang SC" / "Microsoft YaHei" 等兜底，属预期行为。
+
+   ⚠️ 数字 10 个 advance 全等 0.6 em（天然等宽）；base.css 的 tnum 规则对本字体是 no-op，保留无害。
+   ============================================================ */
+
+@font-face {
+  font-family: "LXGW WenKai";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("/fonts/LXGWWenKai-Regular-subset.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "LXGW WenKai";
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url("/fonts/LXGWWenKai-Bold-subset.woff2") format("woff2");
+}

@@ -67,15 +67,6 @@ export function renderEntrance(root, { go }) {
         <!-- §7 表 7:28：说明条（左下；真实锚点——《铁流凝变》是序厅真实馆藏，不许写否认它存在的话） -->
         <p class="entrance-strip">序厅镇馆铜雕《铁流凝变》· 长 22 m、高 11.5 m、重 50 吨 —— 这座炉子是它的一次再点火。</p>
 
-        <!-- §1.6：进场序列（底部居中，序厅高亮） -->
-        <nav class="sequence" aria-label="进场序列">
-          <span class="sequence__item">厂区外景</span>
-          <span class="sequence__sep" aria-hidden="true">›</span>
-          <span class="sequence__item is-current" aria-current="step">序厅</span>
-          <span class="sequence__sep" aria-hidden="true">›</span>
-          <span class="sequence__item">铸造馆</span>
-        </nav>
-
         <p class="hint">拖拽环视 · 滚轮缩放</p>
         <!-- 单件场景无导航意义：不做 .minimap（§1.6） -->
       </section>

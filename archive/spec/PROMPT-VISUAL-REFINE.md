@@ -1,7 +1,7 @@
 # 交接提示词 · 视觉细化（地面 / 序厅《炉前》/ 浇铸互动）
 
 > **用法**：把下面 `---` 之间的全文复制给代码工作流。设计侧的另一半是
-> `spec/VISUAL-REFINE-SPEC.md`（**唯一依据**）。
+> `spec/VISUAL-REFINE-SPEC.md`（**唯一依据**，仍在 `spec/` 里）。
 > 视觉基准：`design/S07-序厅炉前.png`、`design/S10-序厅炉前基准.png`、`design/S03-亲手浇铸.png`。
 > 现况实拍：`.workbuddy/shots/`（`entrance-wide` / `entrance-furnace` / `r5fix_default` / `s3-1-select` / `s3-4-open`）。
 >

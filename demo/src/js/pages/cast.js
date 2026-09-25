@@ -45,12 +45,12 @@ const fmtStars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 const STEP_LABELS = ['① 取样', '② 调温', '③ 浇注', '④ 开箱', '⑤ 评分'];
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function renderCast(root, { go }) {
+export function renderCast(root, { go, routes }) {
   /* ============ 骨架（对齐画稿 S03） ============ */
   const page = document.createElement('div');
   page.className = 'page';
   page.innerHTML = `
-    <header class="topbar">
+    <header class="topbar cast__topbar">
       <div class="wrap topbar__inner">
         <a class="logo" href="#/" aria-label="炉火不灭 · 返回首页">
           <span class="logo__mark" aria-hidden="true"></span>炉火不灭
@@ -111,6 +111,7 @@ export function renderCast(root, { go }) {
         <div class="cast__actions">
           <button class="btn btn--primary" data-retry disabled>调整参数重试</button>
           <button class="btn btn--ghost" data-badge disabled>存为我的工牌</button>
+          <button class="btn btn--ghost" data-turn disabled>去协作车削</button>
         </div>
         <p class="cast__unlock" data-unlock></p>
       </aside>
@@ -169,6 +170,7 @@ export function renderCast(root, { go }) {
     grade: $('[data-grade]'),
     retry: $('[data-retry]'),
     badgeBtn: $('[data-badge]'),
+    turnBtn: $('[data-turn]'),
     unlock: $('[data-unlock]'),
     canvas: vp.canvas,
   };
@@ -224,6 +226,7 @@ export function renderCast(root, { go }) {
     els.retry.disabled = true;
     els.badgeBtn.disabled = true;
     els.badgeBtn.textContent = '存为我的工牌';
+    els.turnBtn.disabled = true;
     els.unlock.textContent = '';
   }
 
@@ -254,6 +257,7 @@ export function renderCast(root, { go }) {
     els.grade.textContent = `评级：${r.grade}`;
     els.retry.disabled = false;
     els.badgeBtn.disabled = false;
+    els.turnBtn.disabled = false;
 
     // ---- 馆藏解锁（§7：≥75 且不重复计数） ----
     if (r.total >= UNLOCK_SCORE && !unlocked.has(state.selected)) {
@@ -362,17 +366,14 @@ export function renderCast(root, { go }) {
       sceneRef?.setConsumed(consumed);
     }
 
-    // 缺陷视觉档（§2 ④：气孔凹点 / 冷隔缺口 / 胀砂外凸）
-    const fired = state.result.fired;
-    const gasDed = fired.filter((f) => f.sub === 'gas').reduce((m, f) => Math.max(m, f.ded), 0);
-    const defects = {
-      pits: Math.min(12, Math.round(gasDed / 6)),
-      notch: fired.some((f) => f.defect.includes('冷隔')),
-      bulge: fired.some((f) => f.defect.includes('胀砂')),
-    };
+    // 铸件表面档（W3-R5，用户指令 2026-09-20）：由**总分**推 3 档。
+    // 旧版「气孔凹点 / 冷隔缺口 / 胀砂外凸」贴图退役 —— 那层随机圆点正是被否掉的"斑点材质"。
+    //   总分 ≥85 → 'fine'（最亮最光）／75–84 → 'mid'／<75（含废品）→ 'rough'
+    const total = display.score(state.result.total);
+    const surface = { tier: total >= 85 ? 'fine' : total >= 75 ? 'mid' : 'rough', total };
 
     goStep(3);
-    sceneRef?.openBox(state.selected, defects, () => {
+    sceneRef?.openBox(state.selected, surface, () => {
       state.pouring = false;
       goStep(4);
       revealScore();
@@ -466,17 +467,35 @@ export function renderCast(root, { go }) {
       store.set(K_BADGE_NO, no);
       badge = { ...(badge ?? {}), no: String(no).padStart(6, '0') };
     }
+    /* R1-P2 9a①：工牌改为**记录本局**（原实现是"只升不降"，玩多少次都只看到历史最好那一次，
+       且两次不同的浇铸会得到一模一样的一张卡 ⇒ 用户看不出"这一局跟上一局不一样"）。
+       改动：`rank` / `castScore` 直接取本局值（删 `>=` 与 `Math.max`），
+             并新增本局特征 `sandbox` / `casting` / `params` 三个字段。 */
+    const c = box()?.castingInfo ?? null;
     badge = {
       ...badge,
       name: badge.name ?? '',
-      rank: total >= (badge.castScore ?? 0) ? gradeOf(total) : badge.rank,
-      castScore: Math.max(badge.castScore ?? 0, total),
-      turnTime: badge.turnTime ?? null,
+      rank: gradeOf(total),                                  // 本局等级（不再与历史比大小）
+      castScore: total,                                      // 本局总分（不再取历史最好）
+      sandbox: state.selected,                               // 本局砂箱序号 0–11
+      casting: c ? c.name : null,                            // 本局铸件名（口径同 L283：box().castingInfo.name）
+      params: {                                              // 本局三项工艺参数
+        T: Math.round(state.T),
+        V: Number(state.V.toFixed(1)),
+        H: Number(state.H.toFixed(1)),
+      },
       unlocked: `${unlocked.size}/12`,
     };
     store.set(K_BADGE, badge);
     els.badgeBtn.textContent = '已存 ✓';
-    els.unlock.textContent = '工牌已写入本地；数字工牌页将在 Step 4 上线。';
+    // TURN 包 §7.3：点击后「写数据 + 跳转」。目标页 #/vault 属 VAULT 包，
+    // 若尚未注册就诚实降级为就地反馈（不把观众静默丢到首页）。
+    if (routes?.includes('vault')) go('vault');
+    else els.unlock.textContent = '工牌已写入本地；数字工牌页（#/vault）尚未上线。';
+  });
+
+  els.turnBtn.addEventListener('click', () => {              // TURN 包 §7.3：→ 协作车削
+    if (routes?.includes('turn')) go('turn');
   });
 
   /* ============ 启动 ============ */

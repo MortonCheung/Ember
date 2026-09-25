@@ -1,7 +1,7 @@
 # 提示词 · 序厅方向 C《炉前》（Step 4C）
 
 > 可直接整段复制给实现方。**唯一依据 = `spec/ENTRANCE-FURNACE-SPEC.md`**（本提示词是它的执行摘要，两者冲突时以规格为准）。
-> 作废：`ENTRANCE-VISUAL-REVISION.md` §2–§6、`ENTRANCE-HISTORY-SPEC.md` §1.2–§1.5、《铁流凝变》雕塑方向与 22 × 11.5 m 锚点。
+> 作废：`archive/spec/ENTRANCE-VISUAL-REVISION.md` §2–§6、`ENTRANCE-HISTORY-SPEC.md` §1.2–§1.5、《铁流凝变》雕塑方向与 22 × 11.5 m 锚点。
 
 ---
 
@@ -35,7 +35,7 @@
 | `demo/src/js/pages/entrance.js` | 删 `envMapIntensity = 4.5` 覆写；`views` 换成规格 §5 的六预设 |
 | `demo/src/js/pages/history.js`、`venues.js`、`hall.js`、`main.js`、`layout.css` | **不动**（除规格 §7 的点位文案，若文案在 DOM 里） |
 | `design/`、`spec/` | 不动（设计侧已定稿：`spec/ENTRANCE-FURNACE-SPEC.md` + `design/S10-序厅炉前基准.png`） |
-| `spec/IMPLEMENTATION-STEP4C-REPORT.md` | **新建**交付自述，必须含 **E1″ 三句原话** 与 **E5 四区实测数** |
+| `archive/spec/IMPLEMENTATION-STEP4C-REPORT.md` | **新建**交付自述，必须含 **E1″ 三句原话** 与 **E5 四区实测数**（本轮已交付，**已归档至 `archive/spec/`**） |
 
 ---
 

@@ -10,19 +10,17 @@ import * as THREE from 'three';
 import { mountViewport } from '../scene/viewport.js';
 import { venueNavHTML, handleVenueClick } from '../venues.js';
 
-/* 信息卡主按钮：默认入口是浇铸互动（#/cast）。
-   机床类展项的入口是协作车削（#/turn，Step 3B 未上线）——未上线的入口按本页既有惯例
-   给提示条，**不跳不存在的路由**（PAGES 里没有 turn，go('turn') 会静默回首页）。
-   上线时只需把 CTA_TURN.go 改成 'turn'。 */
+/* 信息卡主按钮：三个热点（冲天炉 / 砂箱 / 车床）**一律先去浇铸互动**（#/cast）。
+   R1 第 6 条裁定：车床不再特殊对待 —— 协作车削的唯一正门是 #/cast 结算页的
+   「去协作车削」按钮；#/turn 直连 URL 也照常可玩，此处不加锁、不加拦截。 */
 const CTA_CAST = { label: '进入浇铸互动', go: 'cast' };
-const CTA_TURN = { label: '进入协作车削', go: null, notice: '「协作车削」模块尚未开放 · 敬请期待' };
 
 /* 信息卡正文（spec/PROJECT-BRIEF.md §4 可用史实清单，照抄不改写）
    2C-R5.1 + R5-FIX：热点药丸集合由「冲天炉 / 天吊 / 砂箱」改为「冲天炉 / 砂箱 / 车床」
    —— **设计方在 `SCENE-LAYOUT-FIX-SPEC.md` §10.8-E 确认接受**：
    天吊是顶部叙事、药丸会被钳回屏内与展品脱节；C620-1 是全篇唯一有具体型号与史实的展品，
-   之前反而没有标注。已核对评分规格未引用"天吊"热点，无回归。
-   每件展品的 CTA 由 SPOT_INFO[id].cta 决定（缺省 = CTA_CAST，见 §10.8-E）。 */
+    之前反而没有标注。已核对评分规格未引用"天吊"热点，无回归。
+    三个热点的 CTA 一律走 CTA_CAST（R1 第 6 条：不再按展项区分）。 */
 const SPOT_INFO = {
   cupola: {
     title: '十吨冲天炉',
@@ -35,7 +33,6 @@ const SPOT_INFO = {
   lathe: {
     title: 'C620-1 普通车床',
     body: '1955 年沈阳第一机床厂研制；图案登上第三套人民币 2 元纸币正面。年产量最高 2200 台，国内市场占有率超八成，远销 70 多个国家。',
-    cta: CTA_TURN,
   },
 };
 
@@ -136,18 +133,11 @@ export function renderHall(root, { go }) {
     }
     if (any) {
       const info = SPOT_INFO[id];
-      const cta = info.cta ?? CTA_CAST;
       cardTitle.textContent = info.title;
       cardBody.textContent = info.body;
-      // 主按钮随展项切换：有模块的走路由，未上线的只给提示条（不跳不存在的路由）
-      ctaBtn.textContent = cta.label;
-      if (cta.go) {
-        ctaBtn.dataset.go = cta.go;
-        delete ctaBtn.dataset.ctaNotice;
-      } else {
-        delete ctaBtn.dataset.go;
-        ctaBtn.dataset.ctaNotice = cta.notice ?? '该模块尚未开放 · 敬请期待';
-      }
+      // 主按钮：三个热点一律去浇铸互动（R1 第 6 条，不再按展项切换）
+      ctaBtn.textContent = CTA_CAST.label;
+      ctaBtn.dataset.go = CTA_CAST.go;
       card.hidden = false;
     } else {
       card.hidden = true;
@@ -237,10 +227,7 @@ export function renderHall(root, { go }) {
 
   function onClick(e) {
     const btn = e.target.closest('[data-go]');
-    if (btn) { go(btn.dataset.go); return; }
-    // 未上线的展项入口（信息卡主按钮 data-cta-notice）：给提示条，不跳不存在的路由
-    const pending = e.target.closest('[data-cta-notice]');
-    if (pending) showNotice(pending.dataset.ctaNotice);
+    if (btn) go(btn.dataset.go);
   }
   page.addEventListener('click', onClick);
 
