@@ -7,11 +7,10 @@
      不得补编年份；第 7 节点故意不标年份 →「同期 · 人与物」）
    · 版式横向栅格按 §2.3（1440 稿）：内容左界 120 / 脊线 140 /
      节点内容 190（宽 1060）/ 右栏馆体信息 w 320 右对齐 / 长卷轨 1336
+   · 顶部只保留当前馆身份与「展馆总览」出口，不再跨馆互跳
    · 颜色全部走 tokens.css 变量；铁水橙只用于眉标 / 关键年份（1957）/
      关键节点点 / 长卷指示 / 主按钮
    ============================================================ */
-
-import { venueNavHTML, handleVenueClick } from '../venues.js';
 
 /* §2.2 内容（逐字照抄，含全角标点与换行；不得改写） */
 const NODES = [
@@ -82,7 +81,7 @@ export function renderHistory(root, { go }) {
                 <h2 class="timeline__title">${n.title}</h2>
                 ${n.body.map((p) => `<p class="timeline__body">${p}</p>`).join('')}
                 ${n.finale ? `
-                  <button class="btn btn--primary timeline__cta" type="button" data-go="hall">观看铸造馆 →</button>
+                  <button class="btn btn--primary timeline__cta" type="button" data-go="">完成阅读 · 返回总览</button>
                 ` : ''}
               </li>
             `).join('')}
@@ -96,21 +95,15 @@ export function renderHistory(root, { go }) {
       </div>
 
       <div class="hud">
-        <button class="hud__back" type="button" data-go="">‹ 返回首页</button>
+        <button class="hud__back" type="button" data-go=""><span aria-hidden="true">←</span> 展馆总览</button>
+        <span class="hud__divider" aria-hidden="true"></span>
         <span class="hud__title">
-          <span class="logo__mark" aria-hidden="true"></span>
-          虚拟展厅 · 通史馆
+          <span class="hud__section num">02</span>
+          通史馆 · 铁西纪年
         </span>
         <div class="hud__spacer"></div>
-        <span class="hud__badge"><span class="hud__dot"></span>长卷 · 图文</span>
-        <button class="btn btn--ghost hud__xr" type="button" data-go="hall">进入铸造馆</button>
+        <span class="hud__badge">长卷 · 图文</span>
       </div>
-
-      <nav class="halls" aria-label="场馆导航">
-        ${venueNavHTML('通史馆')}
-      </nav>
-
-      <div class="halls-notice" data-notice hidden aria-live="polite"></div>
     </div>
   `;
 
@@ -131,22 +124,6 @@ export function renderHistory(root, { go }) {
   scroller.addEventListener('scroll', updateRail, { passive: true });
   updateRail();
 
-  /* ---------- 导航（共享接线）+ 页内 data-go ---------- */
-  const notice = $('[data-notice]');
-  let noticeTimer = 0;
-  function showNotice(text) {
-    notice.textContent = text;
-    notice.hidden = false;
-    clearTimeout(noticeTimer);
-    noticeTimer = setTimeout(() => { notice.hidden = true; }, 2600);
-  }
-  const halls = page.querySelector('.halls');
-  function onNavClick(e) {
-    // 返回值不用于藏提示条：筹备中馆要靠 showNotice() 留示 2.6s（见 hall.js 同注）
-    handleVenueClick(e, { go, showNotice });
-  }
-  halls.addEventListener('click', onNavClick);
-
   function onClick(e) {
     const btn = e.target.closest('[data-go]');
     if (btn) go(btn.dataset.go);
@@ -155,9 +132,7 @@ export function renderHistory(root, { go }) {
 
   return {
     dispose() {
-      clearTimeout(noticeTimer);
       scroller.removeEventListener('scroll', updateRail);
-      halls.removeEventListener('click', onNavClick);
       page.removeEventListener('click', onClick);
       page.remove();
     },

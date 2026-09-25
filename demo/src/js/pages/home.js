@@ -1,156 +1,123 @@
 /* ============================================================
-   home.js — 首页（对应设计稿 S01）
-   Step 1：静态视觉还原 + 跳转按钮
-   本轮补齐：滚动飞越（P2 降级实现）——
-   · 三章节（与 caption 一致）：厂区外景 → 序厅《铁流凝变》 → 铸造馆中的冲天炉
-   · 滚动注入 --flyover-progress（0–1），进度条与章节高亮由它驱动
-   · 视频只留槽位（data-asset-status="placeholder|ready"），本轮不引入视频文件；
-     ready 时切 scrub 模式（video.currentTime = progress × duration）
-   · prefers-reduced-motion：不监听滚动，直接展示最终章节
+   home.js — 展馆总览（星形信息架构的唯一中心）
+   本页只做路径选择，不新增业务功能。四个入口分别指向已有页面，
+   子页统一回到此处，避免展馆之间任意互跳。
    ============================================================ */
 
-/**
- * 主导航（文案与顺序对齐设计稿 S01）
- * route 为空字符串表示尚未实现该页，暂指向首页
- */
-const NAV = [
-  { label: '首页', route: '' },
-  { label: '虚拟展厅', route: 'hall' },
-  { label: '互动体验', route: 'cast' },
-  { label: '数字藏品', route: '' },
-  { label: '关于项目', route: '' },
-];
-
-/* 飞越三章节（标题与首屏 caption 的串排一致） */
-const CHAPTERS = [
-  { tag: '第一章', title: '厂区外景', note: '滚动进入：掠过沈阳铸造厂的锈色屋顶与烟囱。' },
-  { tag: '第二章', title: '序厅《铁流凝变》', note: '继续滚动：雕塑《铁流凝变》迎面而来。' },
-  { tag: '第三章', title: '铸造馆中的冲天炉', note: '滚到底：十吨冲天炉在馆中熄火伫立，等你重新点火。' },
+const DESTINATIONS = [
+  {
+    index: '01', route: 'entrance', verb: '看见', title: '序厅 · 炉前',
+    meta: '三维场景 · 自由环视',
+    note: '站在炉口前，看铁水沿着流槽再次亮起。',
+  },
+  {
+    index: '02', route: 'history', verb: '看懂', title: '通史馆 · 铁西纪年',
+    meta: '图文长卷 · 1953—今天',
+    note: '沿一条时间轴，读懂“东方鲁尔”为何成为国家工业遗产。',
+  },
+  {
+    index: '03', route: 'hall', verb: '走进', title: '铸造馆 · 翻砂车间',
+    meta: '三维场景 · 展品探索',
+    note: '进入原沈阳铸造厂车间，靠近冲天炉、砂箱与 C620-1 车床。',
+  },
+  {
+    index: '04', route: 'cast', verb: '参与', title: '亲手浇铸 · 第一炉铁水',
+    meta: '五步交互 · 可解释评分',
+    note: '取样、调温、浇注、开箱，让每个参数真正改变铸件结果。',
+  },
 ];
 
 export function renderHome(root, { go }) {
   const page = document.createElement('div');
-  page.className = 'page';
+  page.className = 'page home';
 
   page.innerHTML = `
-    <header class="topbar">
+    <a class="skip-link" href="#museum-index">跳到参观入口</a>
+
+    <header class="topbar home__topbar">
       <div class="wrap topbar__inner">
-        <a class="logo" href="#/" aria-label="炉火不灭 · 返回首页">
-          <span class="logo__mark" aria-hidden="true"></span>
-          炉火不灭
+        <a class="logo" href="#/" aria-current="page" aria-label="炉火不灭 · 展馆总览">
+          <span class="logo__mark" aria-hidden="true"><i></i></span>
+          <span class="logo__wordmark">炉火不灭<small>中国工业博物馆数字展馆</small></span>
         </a>
-        <nav class="nav" aria-label="主导航">
-          ${NAV.map((n, i) => `
-            <a class="nav__item" href="#/${n.route}" ${i === 0 ? 'aria-current="page"' : ''}>${n.label}</a>
+        <nav class="nav" aria-label="展馆入口">
+          ${DESTINATIONS.map((item) => `
+            <a class="nav__item" href="#/${item.route}" data-go="${item.route}">${item.title.split(' · ')[0]}</a>
           `).join('')}
         </nav>
         <div class="topbar__spacer"></div>
-        <button class="btn btn--primary" type="button" data-go="hall">进入虚拟展厅</button>
+        <button class="btn btn--primary home__header-cta" type="button" data-go="entrance">从序厅开始</button>
       </div>
     </header>
 
-    <main class="wrap">
-      <section class="hero">
-        <div class="hero__col">
-          <p class="eyebrow">序厅 · 铁流凝变</p>
-          <h1>1957 年点火的那炉铁水<br />今天由你重新浇下</h1>
-          <p class="hero__body">
-            中国工业博物馆的铸造馆，是原沈阳铸造厂的翻砂车间原址。那台十吨冲天炉
-            从 1957 年投用，到 2007 年熄火，熔化过近百万吨铁水。现在它是静止的。
-            我们把炉门重新打开——这一次，浇铸的人是你。
-          </p>
-          <div class="hero__actions">
-            <button class="btn btn--primary" type="button" data-go="hall">进入虚拟展厅</button>
-            <button class="btn btn--ghost" type="button">了解项目</button>
+    <main class="home__main">
+      <section class="home-hero wrap" aria-labelledby="home-title">
+        <div class="home-hero__copy">
+          <p class="eyebrow">中国工业博物馆 · 沈阳</p>
+          <h1 id="home-title">炉火<br /><em>不灭</em></h1>
+          <p class="home-hero__lead">把一座已被封存的车间，<br />重启为一台可以对谈的机器。</p>
+          <div class="home-hero__actions">
+            <button class="btn btn--primary" type="button" data-go="entrance">进入序厅 <span aria-hidden="true">↗</span></button>
+            <a class="text-link" href="#museum-index">查看四条路径 <span aria-hidden="true">↓</span></a>
           </div>
         </div>
 
-        <div class="hero__col">
-          <figure class="flyover" role="img" aria-label="滚动飞越影像：厂区外景 → 序厅《铁流凝变》 → 铸造馆中的冲天炉" data-flyover>
-            <div class="flyover__top">
-              <div class="flyover__chips">
-                <span class="chip"><span class="chip__dot"></span>滚动驱动 · 视频时间轴</span>
-                <span class="chip">24 段预渲染链</span>
-              </div>
-              <div class="flyover__track"><div class="flyover__fill"></div></div>
-            </div>
-            <div class="flyover__stage" data-flyover-stage data-asset-status="placeholder">
-              <!-- 视频槽位：素材就绪后把 data-asset-status 置为 ready，scrub 逻辑已在下方接线 -->
-              <video class="flyover__video" data-flyover-video muted playsinline preload="none"></video>
-              ${CHAPTERS.map((c, i) => `
-                <div class="flyover__chapter${i === 0 ? ' is-active' : ''}" data-chapter="${i}">
-                  <span class="flyover__chapter-tag">${c.tag}</span>
-                  <h2 class="flyover__chapter-title">${c.title}</h2>
-                  <p class="flyover__chapter-note">${c.note}</p>
-                </div>
-              `).join('')}
-            </div>
-          </figure>
-          <p class="flyover__caption">首页由滚动驱动飞越串排：厂区外景 → 序厅《铁流凝变》 → 铸造馆中的冲天炉。</p>
-        </div>
+        <figure class="furnace-hero" aria-label="1957 年点火、2007 年熄火的十吨冲天炉抽象炉口">
+          <div class="furnace-hero__grid" aria-hidden="true"></div>
+          <span class="furnace-hero__year furnace-hero__year--start num">1957</span>
+          <span class="furnace-hero__year furnace-hero__year--end num">2007</span>
+          <div class="furnace-hero__aperture" aria-hidden="true"><span></span></div>
+          <figcaption>
+            <span>十吨冲天炉</span>
+            <span class="num">12 m · 300 t · 50 年</span>
+          </figcaption>
+        </figure>
       </section>
 
-      <section class="flyover-recipes" aria-label="飞越章节预告">
-        <p class="eyebrow">滚动飞越 · 章节预告</p>
-        <div class="flyover-recipes__list">
-          ${CHAPTERS.map((c, i) => `
-            <article class="flyover-recipes__item" data-recipe="${i}">
-              <span class="flyover-recipes__num num">0${i + 1}</span>
-              <h3 class="flyover-recipes__title">${c.title}</h3>
-              <p class="flyover-recipes__note">${c.note}</p>
-            </article>
+      <section class="museum-index wrap" id="museum-index" aria-labelledby="index-title">
+        <header class="museum-index__head">
+          <div>
+            <p class="eyebrow">展馆总览</p>
+            <h2 id="index-title">从同一处进入，<br />也回到同一处。</h2>
+          </div>
+          <p>四个已开放模块是平行路径。每次只选一个目标，完成后回到总览，再决定下一站。</p>
+        </header>
+
+        <div class="museum-index__list">
+          ${DESTINATIONS.map((item) => `
+            <button class="museum-route" type="button" data-go="${item.route}" aria-label="进入${item.title}">
+              <span class="museum-route__index num">${item.index}</span>
+              <span class="museum-route__verb">${item.verb}</span>
+              <span class="museum-route__main">
+                <strong>${item.title}</strong>
+                <small>${item.note}</small>
+              </span>
+              <span class="museum-route__meta num">${item.meta}</span>
+              <span class="museum-route__arrow" aria-hidden="true">↗</span>
+            </button>
           `).join('')}
         </div>
       </section>
     </main>
+
+    <footer class="home-footer wrap">
+      <p>「炉火不灭」· 中国工业博物馆 Web 数字展馆</p>
+      <p class="num">SHENYANG · 41.8°N / 123.4°E</p>
+    </footer>
   `;
 
   root.appendChild(page);
 
-  // ---------- 滚动飞越驱动 ----------
-  const panel = page.querySelector('[data-flyover]');
-  const stage = page.querySelector('[data-flyover-stage]');
-  const video = page.querySelector('[data-flyover-video]');
-  const chapters = [...page.querySelectorAll('[data-chapter]')];
-  const recipes = [...page.querySelectorAll('[data-recipe]')];
-  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function apply(p) {
-    panel.style.setProperty('--flyover-progress', p.toFixed(3));
-    const active = Math.min(CHAPTERS.length - 1, Math.floor(p * CHAPTERS.length));
-    chapters.forEach((el, i) => el.classList.toggle('is-active', i === active));
-    recipes.forEach((el, i) => el.classList.toggle('is-active', i === active));
-  }
-
-  function onScroll() {
-    // 整页滚动进度（首页的滚动叙事就是飞越本身）：0 = 页顶，1 = 页底
-    const max = document.documentElement.scrollHeight - innerHeight;
-    const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 1;
-    apply(p);
-    // 视频槽位：素材就绪（data-asset-status="ready"）时切 scrub 模式
-    if (video.dataset.assetStatus === 'ready' && video.duration > 0) {
-      video.currentTime = p * video.duration;
-    }
-  }
-
-  if (reduceMotion) {
-    apply(1);            // 直接展示最终章节，不监听滚动
-  } else {
-    addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  }
-
-  // 事件委托：所有带 data-go 的元素都参与路由
   function onClick(e) {
-    const btn = e.target.closest('[data-go]');
-    if (!btn) return;
-    go(btn.dataset.go);
+    const target = e.target.closest('[data-go]');
+    if (!target) return;
+    e.preventDefault();
+    go(target.dataset.go);
   }
   page.addEventListener('click', onClick);
 
   return {
     dispose() {
-      if (!reduceMotion) removeEventListener('scroll', onScroll);
       page.removeEventListener('click', onClick);
       page.remove();
     },

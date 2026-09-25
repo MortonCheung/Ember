@@ -6,14 +6,15 @@
 
 :root {
   /* ===== 色彩 · Dark（默认） ===== */
-  --c-bg:         #0E1116;
-  --c-surface:    #171B21;
-  --c-surface-2:  #1F242B;
-  --c-line:       #2E3640;
-  --c-text:       #F2F4F7;
-  --c-text-muted: #8B939E;
-  --c-iron:       #E8663C;   /* 铁水橙 —— 唯一强调色 */
-  --c-steel:      #525D69;
+  --c-bg:         #0A0B0D;
+  --c-surface:    #111418;
+  --c-surface-2:  #171B20;
+  --c-line:       #2A2D32;
+  --c-text:       #F4F4F2;
+  --c-text-muted: #9AA0A8;
+  --c-iron:       #E45B34;   /* 铁水橙 —— 唯一强调色 */
+  --c-steel:      #626973;
+  --c-iron-dark:  #9B321A;
 
   /* ===== 间距 ===== */
   --s1: 8px;
@@ -22,14 +23,16 @@
   --s4: 32px;
   --s6: 48px;
   --s8: 64px;
-  --radius: 12px;
+  --radius: 8px;
+  --radius-lg: 16px;
 
   /* ===== 排版 ===== */
   /* 中文/西文字体栈：优先 Web 字体，缺失时逐级回落到系统中文字体
      （评委机器若无法访问 Google Fonts，必须能回落到苹方/微软雅黑，不能糊） */
   --font-cn:  "Noto Sans SC", "Source Han Sans CN", "PingFang SC",
               "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
-  --font-num: "Inter", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-display: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --font-num: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
 
   --fs-display: clamp(36px, 3.4vw, 58px);  /* 64px 在 52% 左栏排不下两行，与设计方确认后用 clamp */
   --fs-h1:      44px;
@@ -41,8 +44,8 @@
 
   /* ===== 布局 ===== */
   --page-max:   1440px;
-  --topbar-h:   72px;
-  --hud-h:      56px;
+  --topbar-h:   64px;
+  --hud-h:      64px;
 }
 
 [data-theme="light"] {

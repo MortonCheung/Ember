@@ -45,23 +45,27 @@ const fmtStars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 const STEP_LABELS = ['① 取样', '② 调温', '③ 浇注', '④ 开箱', '⑤ 评分'];
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function renderCast(root, { go }) {
+export function renderCast(root, { go, backFor }) {
   /* ============ 骨架（对齐画稿 S03） ============ */
   const page = document.createElement('div');
   page.className = 'page';
+  const backRoute = backFor?.('cast') === 'hall' ? 'hall' : '';
+  const backLabel = backRoute === 'hall' ? '返回铸造馆' : '返回展馆总览';
   page.innerHTML = `
     <header class="topbar">
       <div class="wrap topbar__inner">
-        <a class="logo" href="#/" aria-label="炉火不灭 · 返回首页">
-          <span class="logo__mark" aria-hidden="true"></span>炉火不灭
+        <a class="logo" href="#/" aria-label="炉火不灭 · 展馆总览" data-go="">
+          <span class="logo__mark" aria-hidden="true"><i></i></span>
+          <span class="logo__wordmark">炉火不灭<small>中国工业博物馆数字展馆</small></span>
         </a>
-        <span class="cast__page-title">互动体验 · 亲手浇下第一炉铁水</span>
+        <span class="cast__page-title"><b class="num">04</b> 亲手浇铸</span>
         <div class="topbar__spacer"></div>
         <ol class="cast__steps" aria-label="浇铸流程">
           ${STEP_LABELS.map((s, i) => `
             <li class="cast__step" data-step="${i}" ${i === 0 ? 'aria-current="step"' : ''}>${s}</li>
           `).join('')}
         </ol>
+        <button class="site-back" type="button" data-go="${backRoute}"><span aria-hidden="true">←</span> ${backLabel}</button>
       </div>
     </header>
 
@@ -117,6 +121,14 @@ export function renderCast(root, { go }) {
     </main>
   `;
   root.appendChild(page);
+
+  function onRouteClick(e) {
+    const target = e.target.closest('[data-go]');
+    if (!target) return;
+    e.preventDefault();
+    go(target.dataset.go);
+  }
+  page.addEventListener('click', onRouteClick);
 
   /* ============ 三维视口（参数化挂载，spec §12.9） ============ */
   const vp = mountViewport(page.querySelector('.viewport'), {
@@ -217,7 +229,7 @@ export function renderCast(root, { go }) {
     els.verdict.textContent = '';
     for (const k of ['form', 'gas', 'yield']) {
       els.subs[k].value.textContent = '–';
-      els.subs[k].fill.style.width = '0%';
+      els.subs[k].fill.style.transform = 'scaleX(0)';
     }
     els.diagnosis.textContent = '完成一炉后，这里会给出逐条可解释的评分与病因诊断。';
     els.grade.textContent = '';
@@ -246,7 +258,7 @@ export function renderCast(root, { go }) {
     for (const k of ['form', 'gas', 'yield']) {
       const v = display.sub(subs[k]);
       countUp(els.subs[k].value, v);
-      els.subs[k].fill.style.width = `${v}%`;   // CSS transition 补间；reduced-motion 下由全局规则直切
+      els.subs[k].fill.style.transform = `scaleX(${v / 100})`;   // 只动 transform，避免触发布局
     }
     const scrap = r.scrapPrefix
       ? `<span class="cast__scrap">${r.scrapPrefix}</span>` : '';
@@ -537,6 +549,7 @@ export function renderCast(root, { go }) {
         els.canvas.removeEventListener('pointermove', onHover);
         els.canvas.removeEventListener('pointerdown', onPick);
       }
+      page.removeEventListener('click', onRouteClick);
       vp.dispose();
       page.remove();
     },

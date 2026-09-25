@@ -8,7 +8,6 @@
 
 import * as THREE from 'three';
 import { mountViewport } from '../scene/viewport.js';
-import { venueNavHTML, handleVenueClick } from '../venues.js';
 
 /* 信息卡主按钮：默认入口是浇铸互动（#/cast）。
    机床类展项的入口是协作车削（#/turn，Step 3B 未上线）——未上线的入口按本页既有惯例
@@ -51,20 +50,15 @@ export function renderHall(root, { go }) {
     <div class="hall">
       <section class="viewport" aria-label="铸造馆三维场景">
         <div class="hud">
-          <button class="hud__back" type="button" data-go="">‹ 返回首页</button>
+          <button class="hud__back" type="button" data-go=""><span aria-hidden="true">←</span> 展馆总览</button>
+          <span class="hud__divider" aria-hidden="true"></span>
           <span class="hud__title">
-            <span class="logo__mark" aria-hidden="true"></span>
-            虚拟展厅 · 铸造馆
+            <span class="hud__section num">03</span>
+            铸造馆 · 翻砂车间
           </span>
           <div class="hud__spacer"></div>
-          <span class="hud__badge"><span class="hud__dot"></span>WebGL 自由漫游</span>
-          <button class="btn btn--ghost hud__xr" type="button" aria-disabled="true"
-                  title="沉浸模式需连接 VR 设备">进入 WebXR 沉浸模式</button>
+          <span class="hud__badge">3D 实时展厅</span>
         </div>
-
-        <nav class="halls" aria-label="场馆导航">
-          ${venueNavHTML('铸造馆')}
-        </nav>
 
         <div class="halls-notice" data-notice hidden aria-live="polite"></div>
 
@@ -78,8 +72,6 @@ export function renderHall(root, { go }) {
         </aside>
 
         <div class="hotspots" data-hotspots aria-label="展品热点"></div>
-
-        <div class="minimap" aria-hidden="true">平面导览图</div>
       </section>
     </div>
   `;
@@ -157,24 +149,14 @@ export function renderHall(root, { go }) {
 
   spotWrap.addEventListener('click', selectHandler);
 
-  // ---------- 场馆导航 / 未上线模块：给明确反馈，不静默 ----------
-  // Step 4 §3：序厅 / 通史馆 / 铸造馆三枚走路由（venues.js 共享接线），
-  // 机床馆 / 汽车馆保留药丸、缀「· 筹备中」，点击不改选中态只弹提示条。
+  // ---------- 未上线展项：给明确反馈，不静默 ----------
   let noticeTimer = 0;
-  /** 顶部提示条（场馆未开放 / 展项模块未上线共用同一处 DOM） */
   function showNotice(text) {
     notice.textContent = text;
     notice.hidden = false;
     clearTimeout(noticeTimer);
     noticeTimer = setTimeout(() => { notice.hidden = true; }, 2600);
   }
-  function onNavClick(e) {
-    // 返回值不用于藏提示条：筹备中馆要靠 showNotice() 留示 2.6s；
-    // 可点馆走路由后整页卸载，无需清理
-    handleVenueClick(e, { go, showNotice });
-  }
-  const halls = page.querySelector('.halls');
-  halls.addEventListener('click', onNavClick);
 
   // ---------- W/A/S/D 沿地面漫游（相机与 target 同步平移，不破坏旋转缩放） ----------
   const keys = new Set();
@@ -250,7 +232,6 @@ export function renderHall(root, { go }) {
       clearTimeout(noticeTimer);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
-      halls.removeEventListener('click', onNavClick);
       spotWrap.removeEventListener('click', selectHandler);
       page.removeEventListener('click', onClick);
       vp.dispose();

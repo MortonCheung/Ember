@@ -30,19 +30,37 @@ const TITLES = {
 
 let activePage = null;
 let activeKey = null;
+let pendingNavigation = null;
+const routeOrigins = new Map();
 
 /** 页面上下文：供页面组件调用路由跳转 */
 const ctx = {
   go(key) {
-    const next = '#/' + key;
-    if (location.hash === next) return;
+    const target = Object.prototype.hasOwnProperty.call(PAGES, key) ? key : '';
+    pendingNavigation = { target, origin: activeKey ?? '' };
+    const next = '#/' + target;
+    if (location.hash === next) {
+      pendingNavigation = null;
+      return;
+    }
     location.hash = next; // 触发 hashchange -> mount
+  },
+  backFor(key) {
+    return routeOrigins.get(key) ?? '';
   },
 };
 
 /** 切换页面：先卸载上一页（释放 three.js 资源），再挂载新页 */
 function mount(key) {
   if (key === activeKey) return;
+
+  if (pendingNavigation?.target === key) {
+    routeOrigins.set(key, pendingNavigation.origin);
+  } else if (!routeOrigins.has(key)) {
+    // 直达链接或刷新没有站内来源，统一回到展馆总览。
+    routeOrigins.set(key, '');
+  }
+  pendingNavigation = null;
 
   if (activePage) {
     activePage.dispose?.();

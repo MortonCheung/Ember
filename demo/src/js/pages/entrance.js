@@ -1,11 +1,11 @@
 /* ============================================================
    entrance.js — 序厅（对应设计稿 S07「序厅·炉前」，路由 #/entrance，Step 4C）
    依据：spec/ENTRANCE-FURNACE-SPEC.md（2026-09-18 起 #/entrance 唯一依据）
-   结构复用 #/hall 骨架（HUD / 药丸 / 热点药丸 / 信息卡），差异：
+   结构复用 #/hall 的沉浸式骨架（HUD / 热点 / 信息卡），差异：
    · 不做小地图（单件场景无导航意义）→ 底部居中「进场序列」
    · 左下说明条（§7 表 7:28，真实锚点：《铁流凝变》为序厅真实馆藏）
    · 右下操作提示 · 热点药丸两枚（炉口 / 铁水沟，§7 表）
-   · 信息卡主按钮指向铸造馆（#/hall），不是浇铸
+   · 信息卡主按钮返回展馆总览，与星形路径一致
    场景经 mountViewport 传参注入（buildScene / cameraPos / target /
    debugKey / views），默认参数零改动（R3 不回归）。
    ============================================================ */
@@ -13,7 +13,6 @@
 import * as THREE from 'three';
 import { mountViewport } from '../scene/viewport.js';
 import { buildEntranceScene, entranceLayout, entranceSilhouette, e5ScreenPoints } from '../scene/entrance-scene.js';
-import { venueNavHTML, handleVenueClick } from '../venues.js';
 
 /* §5 机位预设（Step 4C）：default 逐字不动（不回归门禁）；sculpture / splash 已删除 */
 const VIEWS = {
@@ -37,22 +36,15 @@ export function renderEntrance(root, { go }) {
     <div class="hall entrance">
       <section class="viewport" aria-label="序厅三维场景">
         <div class="hud">
-          <button class="hud__back" type="button" data-go="">‹ 返回首页</button>
+          <button class="hud__back" type="button" data-go=""><span aria-hidden="true">←</span> 展馆总览</button>
+          <span class="hud__divider" aria-hidden="true"></span>
           <span class="hud__title">
-            <span class="logo__mark" aria-hidden="true"></span>
-            虚拟展厅 · 序厅
+            <span class="hud__section num">01</span>
+            序厅 · 炉前
           </span>
           <div class="hud__spacer"></div>
-          <span class="hud__badge"><span class="hud__dot"></span>WebGL 自由漫游</span>
-          <button class="btn btn--ghost hud__xr" type="button" aria-disabled="true"
-                  title="沉浸模式需连接 VR 设备">进入 WebXR 沉浸模式</button>
+          <span class="hud__badge">3D 实时展厅</span>
         </div>
-
-        <nav class="halls" aria-label="场馆导航">
-          ${venueNavHTML('序厅')}
-        </nav>
-
-        <div class="halls-notice" data-notice hidden aria-live="polite"></div>
 
         <div class="hotspots" data-hotspots aria-label="展品热点"></div>
 
@@ -61,20 +53,11 @@ export function renderEntrance(root, { go }) {
           <p class="eyebrow">序厅 · 主题「炉火不灭」</p>
           <h2 class="exhibit-card__title">《炉前》</h2>
           <p class="exhibit-card__body">整面后墙就是炉壁：46 × 18 m，中央炉口 12.0 × 7.5 m，后面是 5 m 深炉膛；铁水从炉口斜下汇成熔池，炉火在缓慢呼吸，不灭。</p>
-          <button class="btn btn--primary exhibit-card__cta" type="button" data-go="hall">进入铸造馆 →</button>
+          <button class="btn btn--primary exhibit-card__cta" type="button" data-go="">结束参观 · 返回总览</button>
         </aside>
 
         <!-- §7 表 7:28：说明条（左下；真实锚点——《铁流凝变》是序厅真实馆藏，不许写否认它存在的话） -->
         <p class="entrance-strip">序厅镇馆铜雕《铁流凝变》· 长 22 m、高 11.5 m、重 50 吨 —— 这座炉子是它的一次再点火。</p>
-
-        <!-- §1.6：进场序列（底部居中，序厅高亮） -->
-        <nav class="sequence" aria-label="进场序列">
-          <span class="sequence__item">厂区外景</span>
-          <span class="sequence__sep" aria-hidden="true">›</span>
-          <span class="sequence__item is-current" aria-current="step">序厅</span>
-          <span class="sequence__sep" aria-hidden="true">›</span>
-          <span class="sequence__item">铸造馆</span>
-        </nav>
 
         <p class="hint">拖拽环视 · 滚轮缩放</p>
         <!-- 单件场景无导航意义：不做 .minimap（§1.6） -->
@@ -97,7 +80,6 @@ export function renderEntrance(root, { go }) {
   const camera = vp.camera;
 
   const $ = (sel) => page.querySelector(sel);
-  const notice = $('[data-notice]');
   const spotWrap = $('[data-hotspots]');
 
   // ---------- 热点药丸两枚（§7 表 7:36 + 新增）：炉口 / 铁水沟，世界锚点投影 ----------
@@ -124,21 +106,6 @@ export function renderEntrance(root, { go }) {
     btn.setAttribute('aria-pressed', String(on));
   }
   spotWrap.addEventListener('click', toggleHotspot);
-
-  // ---------- 场馆导航（共享接线：三枚走路由 / 两枚提示条） ----------
-  let noticeTimer = 0;
-  function showNotice(text) {
-    notice.textContent = text;
-    notice.hidden = false;
-    clearTimeout(noticeTimer);
-    noticeTimer = setTimeout(() => { notice.hidden = true; }, 2600);
-  }
-  const halls = page.querySelector('.halls');
-  function onNavClick(e) {
-    // 返回值不用于藏提示条：筹备中馆要靠 showNotice() 留示 2.6s（见 hall.js 同注）
-    handleVenueClick(e, { go, showNotice });
-  }
-  halls.addEventListener('click', onNavClick);
 
   // ---------- W/A/S/D 漫游（同 hall 惯例，边界为序厅的 ±10 / ±14） ----------
   const keys = new Set();
@@ -221,10 +188,8 @@ export function renderEntrance(root, { go }) {
   return {
     dispose() {
       cancelAnimationFrame(rafId);
-      clearTimeout(noticeTimer);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
-      halls.removeEventListener('click', onNavClick);
       spotWrap.removeEventListener('click', toggleHotspot);
       page.removeEventListener('click', onClick);
       vp.dispose();
